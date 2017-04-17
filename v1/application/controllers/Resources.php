@@ -20,7 +20,10 @@ class Resources extends REST_Controller {
 
 	public function index_get()
 	{
-		return $this->response( array('return' => false , 'result' => 'Forbidden Access'));
+		$this->logdata['method'] = 'GET';
+		catatLog($this->logdata);
+
+		return $this->response( array('return' => false , 'error_message' => 'Parameter tidak ditemukan.'));
 	}
 
 	public function index_post()

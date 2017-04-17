@@ -156,3 +156,35 @@ if ( ! function_exists('trimLower'))
 		return $string;
 	}
 }
+
+if ( ! function_exists('generate_string'))
+{
+	function generate_string($length) {
+	    $possible = "0123456789abcdfghjkmnpqrstvwxyzABCDEFGHIJKLMNOPQRESTUVWXYZ"; // allowed chars in the password
+	     if ($length == "" OR !is_numeric($length)){
+	      $length = 8; 
+	     }
+
+	     $i = 0; 
+	     $password = "";    
+	     while ($i < $length) { 
+	      $char = substr($possible, rand(0, strlen($possible)-1), 1);
+	      if (!strstr($password, $char)) { 
+	       $password .= $char;
+	       $i++;
+	       }
+	      }
+	     return $password;
+	}
+}
+
+if ( ! function_exists('generate_key'))
+{
+	function generate_key()
+	{
+		$key1 = substr( md5(uniqid(rand(), true)),0,10);
+		$key2 = generate_string('7');
+		$key3 = strrev(strtotime( date('Y-m-d H:i:s')));
+		return $key1.'-'.$key2.'-'.$key3;
+	}
+}

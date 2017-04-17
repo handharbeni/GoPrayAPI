@@ -87,7 +87,7 @@ class Users extends REST_Controller {
 							}
 							else
 							{
-								$sql = "SELECT m_akun.nama AS nama_user, m_aktivitas.nama AS nama_aktivitas, m_sholat.nama AS nama_ibadah, t_timeline.tempat , t_timeline.bersama , t_timeline.point , t_timeline.tanggal , t_timeline.jam FROM m_akun , m_aktivitas , m_sholat , t_timeline WHERE m_akun.key = '".$accessToken."' AND t_timeline.id_user = '".$check->result()[0]->id."'";
+								$sql = "SELECT m_aktivitas.nama AS nama_aktivitas, m_sholat.nama AS nama_ibadah, t_timeline.tempat , t_timeline.bersama , t_timeline.point , t_timeline.tanggal , t_timeline.jam FROM m_akun , m_aktivitas , m_sholat , t_timeline WHERE m_akun.key = '".$accessToken."' AND t_timeline.id_user = '".$check->result()[0]->id."' AND t_timeline.id_aktivitas = m_aktivitas.id AND t_timeline.id_ibadah = m_sholat.id";
 
 								$query = $this->db->query($sql);
 
@@ -123,14 +123,9 @@ class Users extends REST_Controller {
 							}
 							else
 							{
-								echo $check->result()[0]->id;
-								// $sql = "SELECT DISTINCT t_closest_family.nama AS nama_kerabat , t_message.message AS pesan , t_message.tanggal , t_message.jam FROM t_closest_family , t_message , m_akun WHERE m_akun.key = '".$accessToken."' AND t_message.id_user = '".$check->result()[0]->id."'";
-
-								$sql = "SELECT t_closest_family.nama AS nama_kerabat , t_message.message AS pesan , t_message.tanggal , t_message.jam FROM  t_closest_family , t_message , m_akun WHERE m_akun.key = '".$accessToken."' AND t_message.id_user = '".$check->result()[0]->id."' AND t_closest_family.id_user = '".$check->result()[0]->id."'";
+								$sql = "SELECT t_closest_family.nama AS nama_kerabat , t_message.message AS pesan , t_message.tanggal , t_message.jam FROM  t_closest_family , t_message , m_akun WHERE m_akun.key = '".$accessToken."' AND t_message.id_user = '".$check->result()[0]->id."' AND t_closest_family.id_user = '".$check->result()[0]->id."' AND t_closest_family.id = t_message.id_kerabat AND t_message.id_user = t_closest_family.id_user";
 
 								$query = $this->db->query($sql);
-
-								print_r($query->result());
 
 								if ( $query->num_rows() == 0)
 								{
@@ -164,7 +159,6 @@ class Users extends REST_Controller {
 							}
 							else
 							{
-								
 								$query = $this->db->select( array('id','nama'))->from('m_sholat')->get();
 
 								if ( $query->num_rows() == 0)
@@ -183,6 +177,24 @@ class Users extends REST_Controller {
 								}
 							}
 						break;
+
+						// Jadwal sholat section
+						case 'jadwalsholat':
+							$tanggal = $this->get('tanggal');
+
+							if ( ! $tanggal)
+							{
+								$result = array(
+										'return' => false,
+										'error_message' => 'Parameter tanggal tidak ditemukan!'
+									);
+							}
+							else
+							{
+								// TO DO
+								$this->db->where('key' , $accessToken);
+							}
+						break;
 						
 						default:
 							$result = array(
@@ -192,7 +204,7 @@ class Users extends REST_Controller {
 						break;
 					}
 				}
-			break;			
+			break;		
 
 			case 'search':
 				if ( ! $q)
@@ -296,18 +308,236 @@ class Users extends REST_Controller {
 				{
 					switch( trimLower($action))
 					{
+						// Login section
 						case 'login':
-							$result = array(
-									'return' => true,
-									'data' => 'ok '.@$accessToken
-								);
+							$email = ( ! $this->post('email')) ? '' : $this->post('email');
+							$password = ( ! $this->post('password')) ? '' : $this->post('password');
+
+							if ( ! $email)
+								{
+								$result = array(
+									'return' => false,
+									'error_message' => 'Field email masih kosong'
+									);
+							}
+							elseif( ! $password)
+							{
+								$result = array(
+									'return' => false,
+									'error_message' => 'Field password masih kosong'
+									);
+							}
+							else
+							{
+								$this->db->where(array('email' => $email , 'password' => md5($password)));
+
+								$query = $this->db->select( array('nama','email','profile_picture','key'))->from('m_akun')->get();
+
+								if ($query->num_rows() > 0)
+								{
+									$result = array(
+										'return' => true,
+										'data' => $query->result()
+										);
+								}
+								else
+								{
+									$result = array(
+										'return' => false,
+										'error_message' => 'Email atau password salah!'
+										);
+								}
+							}
+						break;
+
+						case 'daftar':
+							$nama = $this->post('nama');
+							$email = $this->post('email');
+							$password = $this->post('password');
+
+							if ( ! $nama || ! $email || ! $password)
+							{
+								$result = array(
+										'return' => false,
+										'error_message' => 'Field masih ada yang kosong.'
+									);
+							}
+							else
+							{
+								$this->db->where('email' , $email);
+
+								$query = $this->db->get('m_akun');
+
+								if ( $query->num_rows() > 0)
+								{
+									$result = array(
+											'return' => false,
+											'error_message' => 'Email sudah digunakan!'
+										);
+								}
+								else
+								{
+									$this->load->library('email');
+
+									$config = array();
+									$config['protocol'] = "";
+									$config['smtp_host'] = "";
+									$config['smtp_user'] = "";
+									$config['smtp_pass'] = "";
+									$config['useragent'] = "GoPray";
+									$config['smtp_port'] = "465";
+									$config['wordwrap'] = TRUE;
+									$config['mailtype'] = "text";
+									$config['newline'] = "\r\n";
+									$config['charset'] = "utf-8";
+
+									$this->email->initialize($config);
+
+									$data = array(
+											'nama' => $nama,
+											'email' => $email,
+											'password' => md5($password),
+											'key' => generate_key(),
+											'profile_picture' => null,
+											'tanggal' => date('Y-m-d H:i:s'),
+											'verifikasi' => 'N'
+										);
+
+									$this->db->insert('m_akun' , $data);
+
+							        // $this->email->from('reksarw@gmail.com', 'Reksa Rangga');
+							        // $this->email->to('test@email.com');
+
+							        // $this->email->subject('Email Test');
+							        // $this->email->message('Testing the email class.');  
+
+									$result = array(
+										'return' => true,
+										'data' => $data
+										// 'debugger' => ( $this->email->send()) ? 'Email terkirim' : $this->email->print_debugger()
+									);
+								}
+							}
+						break;
+
+						// insert/update kerabat section
+						case 'kerabat':
+							$metode = $this->post('metode');
+							$kerabat = $this->post('kerabat');
+							$nama = $this->post('nama');
+							$noHp = $this->post('no_hp');
+							$email = $this->post('email');
+
+							if ( ! $accessToken || ! $kerabat || ! $nama || ! $noHp || ! $email || ! $metode)
+							{
+								$result = array(
+										'return' => false,
+										'error_message' => 'Masih ada field yang kosong!'
+									);
+							}
+							else
+							{
+								$listMetode = array('insert','update');
+
+								if ( ! in_array($metode , $listMetode))
+								{
+									$result = array(
+											'return' => false,
+											'error_message' => 'Metode tidak diperbolehkan'
+										);
+								}
+								else
+								{
+									$this->db->where('key' , $accessToken);
+
+									$query = $this->db->get('m_akun');
+
+									$data = array(
+										'id_user' => $query->result()[0]->id,
+										'kerabat' => $kerabat,
+										'nama' => $nama,
+										'email' => $email,
+										'no_hp' => $noHp,
+										'tanggal' => date('Y-m-d'),
+										'jam' => date('H:i:s')
+									);
+
+									if ( $metode == 'insert')
+									{
+										if ( $this->db->insert('t_closest_family' , $data))
+										{
+											$status = 'sukses';
+										}
+										else
+										{
+											$status = 'gagal';
+										}
+									}
+									else
+									{
+
+									}
+
+									$result = array(
+											'return' => true,
+											'status' => $status
+										);
+								}
+							}
+						break;
+
+						case 'timeline':
+							$id_aktivitas = $this->post('id_aktivitas');
+							$id_ibadah = $this->post('id_ibadah');
+							$tempat = $this->post('tempat');
+							$bersama = $this->post('bersama');
+							$point = $this->post('point');
+
+							if ( ! $accessToken || ! $id_aktivitas || ! $id_ibadah || ! $tempat || ! $bersama || ! $point)
+							{
+								$result = array(
+									'return' => false,
+									'error_message' => 'Masih ada field yang kosong!'
+									);
+							}
+							else
+							{
+								$this->db->where('key' , $accessToken);
+
+								$query = $this->db->get('m_akun');
+
+								$data = array(
+										'id_user' => $query->result()[0]->id,
+										'id_aktivitas' => $id_aktivitas,
+										'id_ibadah' => $id_ibadah,
+										'tempat' => $tempat,
+										'bersama' => $bersama,
+										'point' => $point,
+										'tanggal' => date('Y-m-d'),
+										'jam' => date('H:i:s')
+									);
+
+								if ( $this->db->insert('t_timeline' , $data))
+								{
+									$status = 'sukses';
+								}
+								else
+								{
+									$status = 'gagal';
+								}
+
+								$result = array(
+										'return' => true,
+										'status' => $status
+									);
+							}
 						break;
 
 						default:
-				$result = array(
-						'return' => false,
-						'error_message' => 'Metode tidak diperbolehkan!'
-					);
+							$result = array(
+									'return' => false,
+									'error_message' => 'Metode tidak diperbolehkan!'
+								);
 						break;
 					}
 				}
@@ -316,7 +546,7 @@ class Users extends REST_Controller {
 			default:
 				$result = array(
 						'return' => false,
-						'error_message' => 'Metode tidak diperbolehkan!'
+						'error_message' => 'Metode tidak ditemukan!'
 					);
 			break;
 		}
