@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Apr 25, 2017 at 01:29 PM
+-- Generation Time: Apr 25, 2017 at 03:19 PM
 -- Server version: 5.7.17-0ubuntu0.16.04.1
 -- PHP Version: 7.0.15-0ubuntu0.16.04.4
 
@@ -64,7 +64,7 @@ CREATE TABLE `m_akun` (
 
 INSERT INTO `m_akun` (`id`, `nama`, `email`, `password`, `key`, `profile_picture`, `tanggal`, `verifikasi`) VALUES
 (15, 'Reksa Rangga Wardhana', 'reksa.rangga@gmail.com', 'be1265e3c931c1466c929739c7e563b1', 'd5421e0897-MU5KcSf-5414242941', NULL, '2017-04-17 17:15:45', 'N'),
-(16, 'Rangga', 'reksarangga@gmail.com', 'cc03e747a6afbbcbf8be7668acfebee5', '2d22fc72ec-L2j3HTF-1441342941', NULL, '2017-04-17 19:17:21', 'N');
+(16, 'Rangga', 'reksarangga@gmail.com', 'cc03e747a6afbbcbf8be7668acfebee5', 'd5421e0897-MU5KcSf-5414242599', NULL, '2017-04-17 19:17:21', 'N');
 
 -- --------------------------------------------------------
 
@@ -77,6 +77,13 @@ CREATE TABLE `m_doa` (
   `nama` varchar(50) DEFAULT NULL,
   `max_point` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `m_doa`
+--
+
+INSERT INTO `m_doa` (`id`, `nama`, `max_point`) VALUES
+(1, 'Doa Tidur', 50);
 
 -- --------------------------------------------------------
 
@@ -128,6 +135,13 @@ CREATE TABLE `m_puasa` (
   `max_point` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+--
+-- Dumping data for table `m_puasa`
+--
+
+INSERT INTO `m_puasa` (`id`, `nama`, `max_point`) VALUES
+(1, 'Puasa Ramadhan', '15');
+
 -- --------------------------------------------------------
 
 --
@@ -159,6 +173,7 @@ CREATE TABLE `t_closest_family` (
   `kerabat` varchar(50) DEFAULT NULL,
   `nama` varchar(50) DEFAULT NULL,
   `email` varchar(50) NOT NULL,
+  `gambar` longtext NOT NULL,
   `no_hp` varchar(12) DEFAULT NULL,
   `tanggal` date DEFAULT NULL,
   `jam` time DEFAULT NULL
@@ -168,9 +183,9 @@ CREATE TABLE `t_closest_family` (
 -- Dumping data for table `t_closest_family`
 --
 
-INSERT INTO `t_closest_family` (`id`, `id_user`, `kerabat`, `nama`, `email`, `no_hp`, `tanggal`, `jam`) VALUES
-(1, 15, 'Ibu', 'nama', 'email', '089', '2017-04-17', '18:03:03'),
-(2, 15, 'Ibu', 'nama', 'email', '089', '2017-04-17', '18:07:37');
+INSERT INTO `t_closest_family` (`id`, `id_user`, `kerabat`, `nama`, `email`, `gambar`, `no_hp`, `tanggal`, `jam`) VALUES
+(1, 15, 'Ibu', 'nama', 'email', '', '089', '2017-04-17', '18:03:03'),
+(2, 15, 'Ibu', 'nama', 'email', '', '089', '2017-04-17', '18:07:37');
 
 -- --------------------------------------------------------
 
@@ -251,7 +266,8 @@ CREATE TABLE `t_timeline` (
 --
 
 INSERT INTO `t_timeline` (`id`, `id_user`, `id_aktivitas`, `id_ibadah`, `tempat`, `bersama`, `nominal`, `point`, `tanggal`, `jam`) VALUES
-(1, 15, 1, 1, 'Rumah', 'Orang Tua', '0', 60, '2017-04-17', '18:24:46');
+(1, 15, 1, 1, 'Rumah', 'Orang Tua', '0', 60, '2017-04-17', '18:24:46'),
+(2, 15, 2, 1, 'Rumah', 'Orang Tua', '0', 100, '2017-04-25', '03:19:34');
 
 --
 -- Indexes for dumped tables
@@ -351,7 +367,7 @@ ALTER TABLE `m_akun`
 -- AUTO_INCREMENT for table `m_doa`
 --
 ALTER TABLE `m_doa`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 --
 -- AUTO_INCREMENT for table `m_friend`
 --
@@ -366,7 +382,7 @@ ALTER TABLE `m_jadwal_sholat`
 -- AUTO_INCREMENT for table `m_puasa`
 --
 ALTER TABLE `m_puasa`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 --
 -- AUTO_INCREMENT for table `m_sholat`
 --
@@ -396,7 +412,7 @@ ALTER TABLE `t_message`
 -- AUTO_INCREMENT for table `t_timeline`
 --
 ALTER TABLE `t_timeline`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 --
 -- Constraints for dumped tables
 --
