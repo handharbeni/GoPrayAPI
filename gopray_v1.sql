@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Apr 18, 2017 at 03:19 PM
+-- Generation Time: Apr 25, 2017 at 01:29 PM
 -- Server version: 5.7.17-0ubuntu0.16.04.1
 -- PHP Version: 7.0.15-0ubuntu0.16.04.4
 
@@ -28,16 +28,18 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `m_aktivitas` (
   `id` int(11) NOT NULL,
-  `nama` varchar(50) DEFAULT NULL
+  `nama` varchar(50) DEFAULT NULL,
+  `prefix_table` varchar(15) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `m_aktivitas`
 --
 
-INSERT INTO `m_aktivitas` (`id`, `nama`) VALUES
-(1, 'Mengaji'),
-(2, 'Sedekah');
+INSERT INTO `m_aktivitas` (`id`, `nama`, `prefix_table`) VALUES
+(1, 'Doa', 'doa'),
+(2, 'Puasa', 'puasa'),
+(3, 'Sholat', 'sholat');
 
 -- --------------------------------------------------------
 
@@ -112,7 +114,7 @@ CREATE TABLE `m_jadwal_sholat` (
 --
 
 INSERT INTO `m_jadwal_sholat` (`id`, `title`, `type`, `method`, `method_name`, `daylight`, `timezone`, `mapimage`) VALUES
-(1, NULL, NULL, 5, 'Muslim World League', 1, 0, 'http:\\/\\/maps.google.com\\/maps\\/api\\/staticmap?center=51.508129,-0.128005&sensor=false&zoom=13&size=300x300');
+(1, NULL, NULL, 5, 'Muslim World League', 1, 7, 'http:\\/\\/maps.google.com\\/maps\\/api\\/staticmap?center=51.508129,-0.128005&sensor=false&zoom=13&size=300x300');
 
 -- --------------------------------------------------------
 
@@ -238,6 +240,7 @@ CREATE TABLE `t_timeline` (
   `id_ibadah` int(11) DEFAULT NULL COMMENT 'dari berbagai table master',
   `tempat` varchar(150) DEFAULT NULL,
   `bersama` varchar(150) DEFAULT NULL,
+  `nominal` varchar(15) NOT NULL,
   `point` int(11) DEFAULT NULL,
   `tanggal` date DEFAULT NULL,
   `jam` time DEFAULT NULL
@@ -247,8 +250,8 @@ CREATE TABLE `t_timeline` (
 -- Dumping data for table `t_timeline`
 --
 
-INSERT INTO `t_timeline` (`id`, `id_user`, `id_aktivitas`, `id_ibadah`, `tempat`, `bersama`, `point`, `tanggal`, `jam`) VALUES
-(1, 15, 1, 1, 'Rumah', 'Orang Tua', 60, '2017-04-17', '18:24:46');
+INSERT INTO `t_timeline` (`id`, `id_user`, `id_aktivitas`, `id_ibadah`, `tempat`, `bersama`, `nominal`, `point`, `tanggal`, `jam`) VALUES
+(1, 15, 1, 1, 'Rumah', 'Orang Tua', '0', 60, '2017-04-17', '18:24:46');
 
 --
 -- Indexes for dumped tables
@@ -338,7 +341,7 @@ ALTER TABLE `t_timeline`
 -- AUTO_INCREMENT for table `m_aktivitas`
 --
 ALTER TABLE `m_aktivitas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 --
 -- AUTO_INCREMENT for table `m_akun`
 --
