@@ -401,7 +401,7 @@ class Users extends REST_Controller {
 									$this->load->library('email');
 
 									$config = array();
-									$config['protocol'] = "";
+									$c onfig['protocol'] = "";
 									$config['smtp_host'] = "";
 									$config['smtp_user'] = "";
 									$config['smtp_pass'] = "";
@@ -424,7 +424,7 @@ class Users extends REST_Controller {
 											'verifikasi' => 'N'
 										);
 
-									$this->db->insert('m_akun' , $data);
+									//$this->db->insert('m_akun' , $data);
 
 							        // $this->email->from('reksarw@gmail.com', 'Reksa Rangga');
 							        // $this->email->to('test@email.com');
@@ -443,62 +443,75 @@ class Users extends REST_Controller {
 
 						// insert/update kerabat section
 						case 'kerabat':
-							$metode = $this->post('metode');
-							$kerabat = $this->post('kerabat');
-							$nama = $this->post('nama');
-							$noHp = $this->post('no_hp');
-							$email = $this->post('email');
-
-							if ( ! $accessToken || ! $kerabat || ! $nama || ! $noHp || ! $email || ! $metode)
+							$this->db->where('key' , $accessToken);
+							if ( ! $this->db->get('m_akun')->num_rows() > 0)
 							{
 								$result = array(
 										'return' => false,
-										'error_message' => 'Masih ada field yang kosong!'
+										'error_message' => 'Access token salah atau tidak ditemukan!'
 									);
 							}
 							else
 							{
-								$listMetode = array('insert','update');
+								$metode = $this->post('metode');
+								$kerabat = $this->post('kerabat');
+								$nama = $this->post('nama');
+								$gambar = $this->post('gambar');
+								$noHp = $this->post('no_hp');
+								$email = $this->post('email');
 
-								if ( ! in_array($metode , $listMetode))
+								if ( ! $accessToken || ! $kerabat || ! $nama || ! $noHp || ! $email || ! $metode || ! $gambar)
 								{
 									$result = array(
 											'return' => false,
-											'error_message' => 'Metode tidak diperbolehkan'
+											'error_message' => 'Masih ada field yang kosong!'
 										);
 								}
 								else
 								{
-									$this->db->where('key' , $accessToken);
+									$listMetode = array('insert','update');
 
-									$query = $this->db->get('m_akun');
-
-									$data = array(
-										'id_user' => $query->result()[0]->id,
-										'kerabat' => $kerabat,
-										'nama' => $nama,
-										'email' => $email,
-										'no_hp' => $noHp,
-										'tanggal' => date('Y-m-d'),
-										'jam' => date('H:i:s')
-									);
-
-									if ( $metode == 'insert')
+									if ( ! in_array($metode , $listMetode))
 									{
-										if ( $this->db->insert('t_closest_family' , $data))
-										{
-											$status = 'sukses';
-										}
-										else
-										{
-											$status = 'gagal';
-										}
+										$result = array(
+												'return' => false,
+												'error_message' => 'Metode tidak diperbolehkan'
+											);
 									}
+									else
+									{
+										$this->db->where('key' , $accessToken);
 
-									$result = array(
-											'return' => true,
-											'status' => $status
+										$query = $this->db->get('m_akun');
+
+										$data = array(
+											'id_user' => $query->result()[0]->id,
+											'kerabat' => $kerabat,
+											'nama' => $nama,
+											'email' => $email,
+											'gambar' => $gambar,
+											'no_hp' => $noHp,
+											'tanggal' => date('Y-m-d'),
+											'jam' => date('H:i:s')
 										);
+
+										if ( $metode == 'insert')
+										{
+											if ( $this->db->insert('t_closest_family' , $data))
+											{
+												$status = 'sukses';
+											}
+											else
+											{
+												$status = 'gagal';
+											}
+										}
+
+										$result = array(
+												'return' => ( $status == 'sukses') ? true : false,
+												'status' =>  ( $status == 'sukses') ? 0 : 1
+											);
+									}
 								}
 							}
 						break;
@@ -522,33 +535,42 @@ class Users extends REST_Controller {
 							else
 							{
 								$this->db->where('key' , $accessToken);
-
-								$query = $this->db->get('m_akun');
-
-								$data = array(
-										'id_user' => $query->result()[0]->id,
-										'id_aktivitas' => $id_aktivitas,
-										'id_ibadah' => $id_ibadah,
-										'tempat' => $tempat,
-										'bersama' => $bersama,
-										'point' => $point,
-										'tanggal' => $tanggal,
-										'jam' => $jam
-									);
-
-								if ( $this->db->insert('t_timeline' , $data))
+								if ( ! $this->db->get('m_akun')->num_rows() > 0)
 								{
-									$status = 'sukses';
+									$result = array(
+											'return' => false,
+											'error_message' => 'Access token salah atau tidak ditemukan!'
+										);
 								}
 								else
 								{
-									$status = 'gagal';
-								}
+									$query = $this->db->get('m_akun');
 
-								$result = array(
-										'return' => true,
-										'status' => $status
-									);
+									$data = array(
+											'id_user' => $query->result()[0]->id,
+											'id_aktivitas' => $id_aktivitas,
+											'id_ibadah' => $id_ibadah,
+											'tempat' => $tempat,
+											'bersama' => $bersama,
+											'point' => $point,
+											'tanggal' => $tanggal,
+											'jam' => $jam
+										);
+
+									if ( $this->db->insert('t_timeline' , $data))
+									{
+										$status = 'sukses';
+									}
+									else
+									{
+										$status = 'gagal';
+									}
+
+									$result = array(
+											'return' => true,
+											'status' => $status
+										);
+								}
 							}
 						break;
 

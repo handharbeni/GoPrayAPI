@@ -1,7 +1,7 @@
 # GoPrayAPI
 
 [URL Routing]
-timeline,pesan,kerabat
+
 [User/Anak]
 # GET User detail
 /v1/users/self/?access_token={AT}
@@ -14,6 +14,36 @@ timeline,pesan,kerabat
 
 # GET Kerabat
 /v1/users/self/kerabat?access_token={AT}
+
+# POST Login
+=> email
+=> password
+/v1/users/self/login
+
+# POST Daftar
+=> nama
+=> email
+=> password
+/v1/users/self/daftar
+
+# POST Kerabat (INSERT)
+=> access_token
+=> metode ('insert')
+=> kerabat
+=> nama
+=> email
+=> gambar
+=> no_hp
+
+# POST Timeline
+=> access_token
+=> id_aktivitas
+=> id_ibadah
+=> tepmat
+=> bersama
+=> point
+=> tanggal
+=> jam
 
 [Master]
 # GET Sholat
