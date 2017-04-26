@@ -49,22 +49,25 @@ class Users extends REST_Controller {
 					}
 					else
 					{
-						// $this->db->where('key' , $accessToken);
-
-						// $query = $this->db->select( array('nama','email','profile_picture','key'))->from('m_akun')->get()->result();
-						
-						// $result = array(
-						// 		'return' => true,
-						// 		'data' => $query
-						// 	);
-
 						$this->db->where('key' , $accessToken);
 
-						$query = $this->db->select( array('nama','email','profile_picture','key','tanggal'))->from('m_akun')->get()->result();
-						
+						$query = $this->db->get('m_akun');
+						$data = array();
+
+						foreach($query->result() as $row)
+						{
+							$data[] = array(
+									'nama' => $row->nama,
+									'email' => $row->email,
+									'profile_picture' => ( $row->profile_picture == null) ? 'null' : $row->profile_picture,
+									'tanggal' => $row->tanggal,
+									'key' => $row->key
+								);
+						}
+
 						$result = array(
 								'return' => true,
-								'data' => $query
+								'data' => $data
 							);
 					}
 				}
@@ -87,24 +90,34 @@ class Users extends REST_Controller {
 							}
 							else
 							{
-								$sql = "SELECT m_aktivitas.nama AS nama_aktivitas, m_sholat.nama AS nama_ibadah, t_timeline.tempat , t_timeline.bersama , t_timeline.point , t_timeline.tanggal , t_timeline.jam FROM m_akun , m_aktivitas , m_sholat , t_timeline WHERE m_akun.key = '".$accessToken."' AND t_timeline.id_user = '".$check->result()[0]->id."' AND t_timeline.id_aktivitas = m_aktivitas.id AND t_timeline.id_ibadah = m_sholat.id";
+								$sql = "SELECT * FROM m_aktivitas , m_akun , t_timeline WHERE m_akun.key = '".$accessToken."' AND t_timeline.id_user = '".$check->result()[0]->id."' AND t_timeline.id_aktivitas = m_aktivitas.id";
 
-								$query = $this->db->query($sql);
+								$hsl = $this->db->query($sql)->result();
 
-								if ( $query->num_rows() == 0)
+								$results = array();
+
+								foreach($hsl as $num => $data)
 								{
-									$result = array(
-											'return' => true,
-											'data' => 'Data timeline masih kosong.'
+									$aktivitas = $this->db->query("SELECT m_aktivitas.nama AS nama_aktivitas FROM m_aktivitas , t_timeline WHERE t_timeline.id_aktivitas = m_aktivitas.id")->result();
+									
+									$ibadah = $this->db->get('m_'.$hsl[$num]->prefix_table)->result();
+
+									$results[] = array(
+											'nama_aktivitas' => $aktivitas[$num]->nama_aktivitas,
+											'ibadah' => $ibadah[0]->nama,
+											'tempat' => $data->tempat,
+											'bersama' => $data->bersama,
+											'nominal' => $data->nominal,
+											'point' => $data->point,
+											'tanggal' => $data->tanggal,
+											'jam' => $data->jam
 										);
 								}
-								else
-								{
-									$result = array(
-											'return' => true,
-											'data' => $query->result()
-										);
-								}
+
+								$result = array(
+ 										'return' => true,
+										'data' => $results
+									);
 							}
 						break;
 
@@ -144,8 +157,8 @@ class Users extends REST_Controller {
 							}
 						break;
 
-						// Sholat section
-						case 'sholat':
+						// Kerabat section
+						case 'kerabat':
 							$this->db->where('key' , $accessToken);
 
 							$check = $this->db->get('m_akun');
@@ -159,48 +172,30 @@ class Users extends REST_Controller {
 							}
 							else
 							{
-								$query = $this->db->select( array('id','nama'))->from('m_sholat')->get();
+								$this->db->where('id_user' , $check->result()[0]->id);
 
-								if ( $query->num_rows() == 0)
+								$query = $this->db->get('t_closest_family');
+
+								$results = array();
+
+								foreach($query->result() as $data)
 								{
-									$result = array(
-											'return' => true,
-											'data' => 'Data sholat masih kosong.'
+									$results[] = array(
+											'kerabat' => $data->kerabat,
+											'nama' => $data->nama,
+											'email' => $data->email,
+											'gambar' => ( $data->gambar == null ) ? 'null' : $data->gambar,
+											'no_hp' => $data->no_hp,
+											'tanggal' => $data->tanggal,
+											'jam' => $data->jam 
 										);
 								}
-								else
-								{
-									$result = array(
-											'return' => true,
-											'data' => $query->result()
-										);
-								}
-							}
-						break;
 
-						// Jadwal sholat section
-						case 'jadwalsholat':
-							$tanggal = $this->get('tanggal');
-
-							if ( ! $tanggal)
-							{
 								$result = array(
-										'return' => false,
-										'error_message' => 'Parameter tanggal tidak ditemukan!'
+										'return' => true,
+										'data' => $results
 									);
 							}
-							else
-							{
-								// TO DO
-								$this->db->where('key' , $accessToken);
-							}
-						break;
-						
-						default:
-							$result = array(
-									'return' => false,
-									'error_message' => 'Aksi tidak ditemukan'
-								);
 						break;
 					}
 				}
@@ -237,11 +232,23 @@ class Users extends REST_Controller {
 					{
 						$this->db->like('nama' , $q);
 
-						$query = $this->db->select( array('nama','email','profile_picture','key'))->from('m_akun')->get()->result_array();
+						$query = $this->db->get('m_akun');
+						$data = array();
+
+						foreach($query->result() as $row)
+						{
+							$data[] = array(
+									'nama' => $row->nama,
+									'email' => $row->email,
+									'profile_picture' => ( $row->profile_picture == null) ? 'null' : $row->profile_picture,
+									'tanggal' => $row->tanggal,
+									'key' => $row->key
+								);
+						}
 
 						$result = array(
 								'return' => true,
-								'data' => $query
+								'data' => $data
 							);
 					}
 				}
@@ -280,10 +287,24 @@ class Users extends REST_Controller {
 						{
 							$this->db->where('id' , $option);
 
-							$query = $this->db->select( array('nama','email','profile_picture','key'))->from('m_akun')->get()->result();
+							$query = $this->db->get('m_akun');
+
+							$data = array();
+
+							foreach($query->result() as $row)
+							{
+								$data[] = array(
+										'nama' => $row->nama,
+										'email' => $row->email,
+										'profile_picture' => ( $row->profile_picture == null) ? 'null' : $row->profile_picture,
+										'tanggal' => $row->tanggal,
+										'key' => $row->key
+									);
+							}
+
 							$result = array(
 									'return' => true,
-									'data' => $query
+									'data' => $data
 								);
 						}
 					}
@@ -380,7 +401,7 @@ class Users extends REST_Controller {
 									$this->load->library('email');
 
 									$config = array();
-									$config['protocol'] = "";
+									$c onfig['protocol'] = "";
 									$config['smtp_host'] = "";
 									$config['smtp_user'] = "";
 									$config['smtp_pass'] = "";
@@ -403,7 +424,7 @@ class Users extends REST_Controller {
 											'verifikasi' => 'N'
 										);
 
-									$this->db->insert('m_akun' , $data);
+									//$this->db->insert('m_akun' , $data);
 
 							        // $this->email->from('reksarw@gmail.com', 'Reksa Rangga');
 							        // $this->email->to('test@email.com');
@@ -422,66 +443,75 @@ class Users extends REST_Controller {
 
 						// insert/update kerabat section
 						case 'kerabat':
-							$metode = $this->post('metode');
-							$kerabat = $this->post('kerabat');
-							$nama = $this->post('nama');
-							$noHp = $this->post('no_hp');
-							$email = $this->post('email');
-
-							if ( ! $accessToken || ! $kerabat || ! $nama || ! $noHp || ! $email || ! $metode)
+							$this->db->where('key' , $accessToken);
+							if ( ! $this->db->get('m_akun')->num_rows() > 0)
 							{
 								$result = array(
 										'return' => false,
-										'error_message' => 'Masih ada field yang kosong!'
+										'error_message' => 'Access token salah atau tidak ditemukan!'
 									);
 							}
 							else
 							{
-								$listMetode = array('insert','update');
+								$metode = $this->post('metode');
+								$kerabat = $this->post('kerabat');
+								$nama = $this->post('nama');
+								$gambar = $this->post('gambar');
+								$noHp = $this->post('no_hp');
+								$email = $this->post('email');
 
-								if ( ! in_array($metode , $listMetode))
+								if ( ! $accessToken || ! $kerabat || ! $nama || ! $noHp || ! $email || ! $metode || ! $gambar)
 								{
 									$result = array(
 											'return' => false,
-											'error_message' => 'Metode tidak diperbolehkan'
+											'error_message' => 'Masih ada field yang kosong!'
 										);
 								}
 								else
 								{
-									$this->db->where('key' , $accessToken);
+									$listMetode = array('insert','update');
 
-									$query = $this->db->get('m_akun');
-
-									$data = array(
-										'id_user' => $query->result()[0]->id,
-										'kerabat' => $kerabat,
-										'nama' => $nama,
-										'email' => $email,
-										'no_hp' => $noHp,
-										'tanggal' => date('Y-m-d'),
-										'jam' => date('H:i:s')
-									);
-
-									if ( $metode == 'insert')
+									if ( ! in_array($metode , $listMetode))
 									{
-										if ( $this->db->insert('t_closest_family' , $data))
-										{
-											$status = 'sukses';
-										}
-										else
-										{
-											$status = 'gagal';
-										}
+										$result = array(
+												'return' => false,
+												'error_message' => 'Metode tidak diperbolehkan'
+											);
 									}
 									else
 									{
+										$this->db->where('key' , $accessToken);
 
-									}
+										$query = $this->db->get('m_akun');
 
-									$result = array(
-											'return' => true,
-											'status' => $status
+										$data = array(
+											'id_user' => $query->result()[0]->id,
+											'kerabat' => $kerabat,
+											'nama' => $nama,
+											'email' => $email,
+											'gambar' => $gambar,
+											'no_hp' => $noHp,
+											'tanggal' => date('Y-m-d'),
+											'jam' => date('H:i:s')
 										);
+
+										if ( $metode == 'insert')
+										{
+											if ( $this->db->insert('t_closest_family' , $data))
+											{
+												$status = 'sukses';
+											}
+											else
+											{
+												$status = 'gagal';
+											}
+										}
+
+										$result = array(
+												'return' => ( $status == 'sukses') ? true : false,
+												'status' =>  ( $status == 'sukses') ? 0 : 1
+											);
+									}
 								}
 							}
 						break;
@@ -492,6 +522,8 @@ class Users extends REST_Controller {
 							$tempat = $this->post('tempat');
 							$bersama = $this->post('bersama');
 							$point = $this->post('point');
+							$tanggal = $this->post('tanggal');
+							$jam = $this->post('jam');
 
 							if ( ! $accessToken || ! $id_aktivitas || ! $id_ibadah || ! $tempat || ! $bersama || ! $point)
 							{
@@ -503,33 +535,42 @@ class Users extends REST_Controller {
 							else
 							{
 								$this->db->where('key' , $accessToken);
-
-								$query = $this->db->get('m_akun');
-
-								$data = array(
-										'id_user' => $query->result()[0]->id,
-										'id_aktivitas' => $id_aktivitas,
-										'id_ibadah' => $id_ibadah,
-										'tempat' => $tempat,
-										'bersama' => $bersama,
-										'point' => $point,
-										'tanggal' => date('Y-m-d'),
-										'jam' => date('H:i:s')
-									);
-
-								if ( $this->db->insert('t_timeline' , $data))
+								if ( ! $this->db->get('m_akun')->num_rows() > 0)
 								{
-									$status = 'sukses';
+									$result = array(
+											'return' => false,
+											'error_message' => 'Access token salah atau tidak ditemukan!'
+										);
 								}
 								else
 								{
-									$status = 'gagal';
-								}
+									$query = $this->db->get('m_akun');
 
-								$result = array(
-										'return' => true,
-										'status' => $status
-									);
+									$data = array(
+											'id_user' => $query->result()[0]->id,
+											'id_aktivitas' => $id_aktivitas,
+											'id_ibadah' => $id_ibadah,
+											'tempat' => $tempat,
+											'bersama' => $bersama,
+											'point' => $point,
+											'tanggal' => $tanggal,
+											'jam' => $jam
+										);
+
+									if ( $this->db->insert('t_timeline' , $data))
+									{
+										$status = 'sukses';
+									}
+									else
+									{
+										$status = 'gagal';
+									}
+
+									$result = array(
+											'return' => true,
+											'status' => $status
+										);
+								}
 							}
 						break;
 
