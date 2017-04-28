@@ -22,7 +22,7 @@ class Users extends REST_Controller {
 	public function index_get($option = '' , $action = '')
 	{
 		$this->logdata['method'] = 'GET';
-		catatLog($this->logdata);
+		// catatLog($this->logdata);
 
 		$accessToken = $this->get('access_token');
 		$q = $this->get('q');
@@ -318,7 +318,7 @@ class Users extends REST_Controller {
 	public function index_post($option = '' , $action = '')
 	{
 		$this->logdata['method'] = 'POST';
-		catatLog($this->logdata);
+		// catatLog($this->logdata);
 
 		$accessToken = $this->post('access_token');
 
@@ -401,7 +401,7 @@ class Users extends REST_Controller {
 									$this->load->library('email');
 
 									$config = array();
-									$c onfig['protocol'] = "";
+									$config['protocol'] = "";
 									$config['smtp_host'] = "";
 									$config['smtp_user'] = "";
 									$config['smtp_pass'] = "";
@@ -424,7 +424,7 @@ class Users extends REST_Controller {
 											'verifikasi' => 'N'
 										);
 
-									//$this->db->insert('m_akun' , $data);
+									$this->db->insert('m_akun' , $data);
 
 							        // $this->email->from('reksarw@gmail.com', 'Reksa Rangga');
 							        // $this->email->to('test@email.com');
