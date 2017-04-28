@@ -21,7 +21,11 @@ class Master extends REST_Controller {
 
 	public function index_get($option = '')
 	{
+<<<<<<< HEAD:v1/application/controllers/Master.php
 		$this->logdata['method'] = 'GET';
+=======
+		// $this->logdata['method'] = 'GET';
+>>>>>>> 0f67a3fa910d2bded1b7d895bf4d148b6032c378:application/controllers/Master.php
 		// catatLog($this->logdata);
 
 		$accessToken = $this->get('access_token');

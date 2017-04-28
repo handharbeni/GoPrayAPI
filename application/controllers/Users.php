@@ -21,7 +21,11 @@ class Users extends REST_Controller {
 
 	public function index_get($option = '' , $action = '')
 	{
+<<<<<<< HEAD:v1/application/controllers/Users.php
 		$this->logdata['method'] = 'GET';
+=======
+		// $this->logdata['method'] = 'GET';
+>>>>>>> 0f67a3fa910d2bded1b7d895bf4d148b6032c378:application/controllers/Users.php
 		// catatLog($this->logdata);
 
 		$accessToken = $this->get('access_token');
@@ -90,7 +94,7 @@ class Users extends REST_Controller {
 							}
 							else
 							{
-								$sql = "SELECT * FROM m_aktivitas , m_akun , t_timeline WHERE m_akun.key = '".$accessToken."' AND t_timeline.id_user = '".$check->result()[0]->id."' AND t_timeline.id_aktivitas = m_aktivitas.id";
+								$sql = "SELECT * FROM m_aktivitas , m_akun , t_timeline WHERE m_akun.key = '".$accessToken."' AND t_timeline.id_user = '".$check->result()[0]->id."' AND t_timeline.id_aktivitas = m_aktivitas.id ORDER BY t_timeline.tanggal DESC , t_timeline.jam DESC";
 
 								$hsl = $this->db->query($sql)->result();
 
@@ -317,7 +321,11 @@ class Users extends REST_Controller {
 
 	public function index_post($option = '' , $action = '')
 	{
+<<<<<<< HEAD:v1/application/controllers/Users.php
 		$this->logdata['method'] = 'POST';
+=======
+		// $this->logdata['method'] = 'POST';
+>>>>>>> 0f67a3fa910d2bded1b7d895bf4d148b6032c378:application/controllers/Users.php
 		// catatLog($this->logdata);
 
 		$accessToken = $this->post('access_token');
@@ -398,6 +406,7 @@ class Users extends REST_Controller {
 								}
 								else
 								{
+<<<<<<< HEAD:v1/application/controllers/Users.php
 									$this->load->library('email');
 
 									$config = array();
@@ -413,6 +422,23 @@ class Users extends REST_Controller {
 									$config['charset'] = "utf-8";
 
 									$this->email->initialize($config);
+=======
+									// $this->load->library('email');
+
+									// $config = array();
+									// $config['protocol'] = "";
+									// $config['smtp_host'] = "";
+									// $config['smtp_user'] = "";
+									// $config['smtp_pass'] = "";
+									// $config['useragent'] = "GoPray";
+									// $config['smtp_port'] = "465";
+									// $config['wordwrap'] = TRUE;
+									// $config['mailtype'] = "text";
+									// $config['newline'] = "\r\n";
+									// $config['charset'] = "utf-8";
+
+									// $this->email->initialize($config);
+>>>>>>> 0f67a3fa910d2bded1b7d895bf4d148b6032c378:application/controllers/Users.php
 
 									$data = array(
 											'nama' => $nama,
