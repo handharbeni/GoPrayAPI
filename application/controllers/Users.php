@@ -21,11 +21,8 @@ class Users extends REST_Controller {
 
 	public function index_get($option = '' , $action = '')
 	{
-<<<<<<< HEAD:v1/application/controllers/Users.php
 		$this->logdata['method'] = 'GET';
-=======
 		// $this->logdata['method'] = 'GET';
->>>>>>> 0f67a3fa910d2bded1b7d895bf4d148b6032c378:application/controllers/Users.php
 		// catatLog($this->logdata);
 
 		$accessToken = $this->get('access_token');
@@ -321,11 +318,8 @@ class Users extends REST_Controller {
 
 	public function index_post($option = '' , $action = '')
 	{
-<<<<<<< HEAD:v1/application/controllers/Users.php
 		$this->logdata['method'] = 'POST';
-=======
 		// $this->logdata['method'] = 'POST';
->>>>>>> 0f67a3fa910d2bded1b7d895bf4d148b6032c378:application/controllers/Users.php
 		// catatLog($this->logdata);
 
 		$accessToken = $this->post('access_token');
@@ -406,7 +400,6 @@ class Users extends REST_Controller {
 								}
 								else
 								{
-<<<<<<< HEAD:v1/application/controllers/Users.php
 									$this->load->library('email');
 
 									$config = array();
@@ -422,7 +415,6 @@ class Users extends REST_Controller {
 									$config['charset'] = "utf-8";
 
 									$this->email->initialize($config);
-=======
 									// $this->load->library('email');
 
 									// $config = array();
@@ -438,7 +430,6 @@ class Users extends REST_Controller {
 									// $config['charset'] = "utf-8";
 
 									// $this->email->initialize($config);
->>>>>>> 0f67a3fa910d2bded1b7d895bf4d148b6032c378:application/controllers/Users.php
 
 									$data = array(
 											'nama' => $nama,
