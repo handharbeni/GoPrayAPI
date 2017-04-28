@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Apr 25, 2017 at 03:19 PM
+-- Generation Time: Apr 28, 2017 at 01:27 PM
 -- Server version: 5.7.17-0ubuntu0.16.04.1
 -- PHP Version: 7.0.15-0ubuntu0.16.04.4
 
@@ -64,7 +64,11 @@ CREATE TABLE `m_akun` (
 
 INSERT INTO `m_akun` (`id`, `nama`, `email`, `password`, `key`, `profile_picture`, `tanggal`, `verifikasi`) VALUES
 (15, 'Reksa Rangga Wardhana', 'reksa.rangga@gmail.com', 'be1265e3c931c1466c929739c7e563b1', 'd5421e0897-MU5KcSf-5414242941', NULL, '2017-04-17 17:15:45', 'N'),
-(16, 'Rangga', 'reksarangga@gmail.com', 'cc03e747a6afbbcbf8be7668acfebee5', 'd5421e0897-MU5KcSf-5414242599', NULL, '2017-04-17 19:17:21', 'N');
+(16, 'Rangga', 'reksarangga@gmail.com', 'cc03e747a6afbbcbf8be7668acfebee5', 'd5421e0897-MU5KcSf-5414242599', NULL, '2017-04-17 19:17:21', 'N'),
+(17, 'Muhammad handharbeni', 'Mhandharbeni@gmail.com', 'e807f1fcf82d132f9bb018ca6738a19f', '2deca21ffe-UNWB9EO-6585113941', NULL, '2017-04-25 17:24:16', 'N'),
+(18, 'Satriyo', 'Satriyopamungkas@gmail.com ', '910cc9cdf7ff309883d53af3f65688c0', '92504e3606-MJOICwZ-8131223941', NULL, '2017-04-26 22:41:58', 'N'),
+(19, 'saury', 'mohammad.e', 'f1079c5237bd4772f597c36316491f61', '8c83991a76-V2CnRtL-4541223941', NULL, '2017-04-26 22:44:14', 'N'),
+(20, 'saury', 'sa_ury@yahoo.com', 'f1079c5237bd4772f597c36316491f61', 'ba11c24acb-A5q2w0v-0941223941', NULL, '2017-04-26 22:44:50', 'N');
 
 -- --------------------------------------------------------
 
@@ -121,7 +125,7 @@ CREATE TABLE `m_jadwal_sholat` (
 --
 
 INSERT INTO `m_jadwal_sholat` (`id`, `title`, `type`, `method`, `method_name`, `daylight`, `timezone`, `mapimage`) VALUES
-(1, NULL, NULL, 5, 'Muslim World League', 1, 7, 'http:\\/\\/maps.google.com\\/maps\\/api\\/staticmap?center=51.508129,-0.128005&sensor=false&zoom=13&size=300x300');
+(1, NULL, NULL, 5, 'Jadwal Sholat Jakarta', 1, 7, 'http:\\/\\/maps.google.com\\/maps\\/api\\/staticmap?center=51.508129,-0.128005&sensor=false&zoom=13&size=300x300');
 
 -- --------------------------------------------------------
 
@@ -184,8 +188,8 @@ CREATE TABLE `t_closest_family` (
 --
 
 INSERT INTO `t_closest_family` (`id`, `id_user`, `kerabat`, `nama`, `email`, `gambar`, `no_hp`, `tanggal`, `jam`) VALUES
-(1, 15, 'Ibu', 'nama', 'email', '', '089', '2017-04-17', '18:03:03'),
-(2, 15, 'Ibu', 'nama', 'email', '', '089', '2017-04-17', '18:07:37');
+(1, 15, 'Ibu', 'Ayu Tingting', 'ayu@gmail.com', '', '089123456', '2017-04-17', '18:03:03'),
+(2, 15, 'Ayah', 'Budi', 'budi@gmail.com', '', '089123457', '2017-04-17', '18:07:37');
 
 -- --------------------------------------------------------
 
@@ -267,7 +271,7 @@ CREATE TABLE `t_timeline` (
 
 INSERT INTO `t_timeline` (`id`, `id_user`, `id_aktivitas`, `id_ibadah`, `tempat`, `bersama`, `nominal`, `point`, `tanggal`, `jam`) VALUES
 (1, 15, 1, 1, 'Rumah', 'Orang Tua', '0', 60, '2017-04-17', '18:24:46'),
-(2, 15, 2, 1, 'Rumah', 'Orang Tua', '0', 100, '2017-04-25', '03:19:34');
+(2, 15, 2, 1, 'Rumah', 'Orang Tua', '0', 100, '2017-04-25', '19:19:34');
 
 --
 -- Indexes for dumped tables
@@ -362,7 +366,7 @@ ALTER TABLE `m_aktivitas`
 -- AUTO_INCREMENT for table `m_akun`
 --
 ALTER TABLE `m_akun`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 --
 -- AUTO_INCREMENT for table `m_doa`
 --
