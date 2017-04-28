@@ -21,8 +21,8 @@ class Users extends REST_Controller {
 
 	public function index_get($option = '' , $action = '')
 	{
-		$this->logdata['method'] = 'GET';
-		catatLog($this->logdata);
+		// $this->logdata['method'] = 'GET';
+		// catatLog($this->logdata);
 
 		$accessToken = $this->get('access_token');
 		$q = $this->get('q');
@@ -90,7 +90,7 @@ class Users extends REST_Controller {
 							}
 							else
 							{
-								$sql = "SELECT * FROM m_aktivitas , m_akun , t_timeline WHERE m_akun.key = '".$accessToken."' AND t_timeline.id_user = '".$check->result()[0]->id."' AND t_timeline.id_aktivitas = m_aktivitas.id";
+								$sql = "SELECT * FROM m_aktivitas , m_akun , t_timeline WHERE m_akun.key = '".$accessToken."' AND t_timeline.id_user = '".$check->result()[0]->id."' AND t_timeline.id_aktivitas = m_aktivitas.id ORDER BY t_timeline.tanggal DESC , t_timeline.jam DESC";
 
 								$hsl = $this->db->query($sql)->result();
 
@@ -317,8 +317,8 @@ class Users extends REST_Controller {
 
 	public function index_post($option = '' , $action = '')
 	{
-		$this->logdata['method'] = 'POST';
-		catatLog($this->logdata);
+		// $this->logdata['method'] = 'POST';
+		// catatLog($this->logdata);
 
 		$accessToken = $this->post('access_token');
 
@@ -398,21 +398,21 @@ class Users extends REST_Controller {
 								}
 								else
 								{
-									$this->load->library('email');
+									// $this->load->library('email');
 
-									$config = array();
-									$c onfig['protocol'] = "";
-									$config['smtp_host'] = "";
-									$config['smtp_user'] = "";
-									$config['smtp_pass'] = "";
-									$config['useragent'] = "GoPray";
-									$config['smtp_port'] = "465";
-									$config['wordwrap'] = TRUE;
-									$config['mailtype'] = "text";
-									$config['newline'] = "\r\n";
-									$config['charset'] = "utf-8";
+									// $config = array();
+									// $config['protocol'] = "";
+									// $config['smtp_host'] = "";
+									// $config['smtp_user'] = "";
+									// $config['smtp_pass'] = "";
+									// $config['useragent'] = "GoPray";
+									// $config['smtp_port'] = "465";
+									// $config['wordwrap'] = TRUE;
+									// $config['mailtype'] = "text";
+									// $config['newline'] = "\r\n";
+									// $config['charset'] = "utf-8";
 
-									$this->email->initialize($config);
+									// $this->email->initialize($config);
 
 									$data = array(
 											'nama' => $nama,
@@ -424,7 +424,7 @@ class Users extends REST_Controller {
 											'verifikasi' => 'N'
 										);
 
-									//$this->db->insert('m_akun' , $data);
+									$this->db->insert('m_akun' , $data);
 
 							        // $this->email->from('reksarw@gmail.com', 'Reksa Rangga');
 							        // $this->email->to('test@email.com');

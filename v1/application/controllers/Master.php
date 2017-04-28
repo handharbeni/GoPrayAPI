@@ -21,8 +21,8 @@ class Master extends REST_Controller {
 
 	public function index_get($option = '')
 	{
-		$this->logdata['method'] = 'GET';
-		catatLog($this->logdata);
+		// $this->logdata['method'] = 'GET';
+		// catatLog($this->logdata);
 
 		$accessToken = $this->get('access_token');
 

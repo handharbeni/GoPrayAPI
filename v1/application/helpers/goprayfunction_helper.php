@@ -188,3 +188,19 @@ if ( ! function_exists('generate_key'))
 		return $key1.'-'.$key2.'-'.$key3;
 	}
 }
+
+if ( ! function_exists('validEmail'))
+{
+	function validEmail($string)
+    {
+        $string = $this->trimLower($string);
+        $chars = "/^([a-z0-9+_]|\\-|\\.)+@(([a-z0-9_]|\\-)+\\.)+[a-z]{2,6}\$/i";
+        if (strpos($string, '@') === false && strpos($string, '.') === false) {
+            return false;
+        }
+        if (!preg_match($chars, $string)) {
+            return false;
+        }
+        return $string;
+    }
+}
