@@ -75,10 +75,10 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-	'hostname' => 'localhost',
-	'username' => 'root',
+	'hostname' => '45.32.105.117',
+	'username' => 'reksa',
 	'password' => 'reksarw',
-	'database' => 'gopray_v1',
+	'database' => 'gopray_api',
 	'dbdriver' => 'mysqli',
 	'dbprefix' => '',
 	'pconnect' => FALSE,
