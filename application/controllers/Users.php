@@ -109,6 +109,7 @@ class Users extends REST_Controller {
 											'id_aktivitas' => $data->id_aktivitas,
 											'id_ibadah' => $data->id_ibadah,
 											'nama_aktivitas' => $aktivitas[$num]->nama_aktivitas,
+											'image' => $data->image,
 											'ibadah' => $ibadah[0]->nama,
 											'tempat' => $data->tempat,
 											'bersama' => $data->bersama,
