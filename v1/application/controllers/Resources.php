@@ -20,17 +20,17 @@ class Resources extends REST_Controller {
 
 	public function index_get()
 	{
-		$this->logdata['method'] = 'GET';
-		catatLog($this->logdata);
+		// $this->logdata['method'] = 'GET';
+		// catatLog($this->logdata);
 
 		return $this->response( array('return' => false , 'error_message' => 'Parameter tidak ditemukan.'));
 	}
 
 	public function index_post()
 	{
-		$this->logdata['method'] = 'POST';
+		// $this->logdata['method'] = 'POST';
 
-		catatLog($this->logdata);
+		// catatLog($this->logdata);
 
 		$data = array(
 				'return' => TRUE,
