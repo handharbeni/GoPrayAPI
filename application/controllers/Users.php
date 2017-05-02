@@ -100,24 +100,44 @@ class Users extends REST_Controller {
 								foreach($hsl as $num => $data)
 								{
 									$aktivitas = $this->db->query("SELECT m_aktivitas.nama AS nama_aktivitas FROM m_aktivitas , t_timeline WHERE t_timeline.id_aktivitas = m_aktivitas.id")->result();
+									$sQuery = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'gopray_api' AND table_name = 'm_".$hsl[$num]->prefix_table."'";
+									$checkTable = $this->db->query($sQuery);
+									if($checkTable->num_rows() > 0){
+										$ibadah = $this->db->get('m_'.$hsl[$num]->prefix_table)->result();
+										$results[] = array(
+												'id_timeline' =>$data->id,
+												'id_user' =>$data->id_user,
+												'id_aktivitas' => $data->id_aktivitas,
+												'id_ibadah' => $data->id_ibadah,
+												'nama_aktivitas' => $aktivitas[$num]->nama_aktivitas,
+												'image' => $data->image,
+												'ibadah' => $ibadah[0]->nama,
+												'tempat' => $data->tempat,
+												'bersama' => $data->bersama,
+												'nominal' => $data->nominal,
+												'point' => $data->point,
+												'tanggal' => $data->tanggal,
+												'jam' => $data->jam
+											);
+									}else{
+										$results[] = array(
+												'id_timeline' =>$data->id,
+												'id_user' =>$data->id_user,
+												'id_aktivitas' => $data->id_aktivitas,
+												'id_ibadah' => $data->id_ibadah,
+												'nama_aktivitas' => $aktivitas[$num]->nama_aktivitas,
+												'image' => $data->image,
+												'ibadah' => "",
+												'tempat' => $data->tempat,
+												'bersama' => $data->bersama,
+												'nominal' => $data->nominal,
+												'point' => $data->point,
+												'tanggal' => $data->tanggal,
+												'jam' => $data->jam
+											);
+									}
 									
-									$ibadah = $this->db->get('m_'.$hsl[$num]->prefix_table)->result();
 
-									$results[] = array(
-											'id_timeline' =>$data->id,
-											'id_user' =>$data->id_user,
-											'id_aktivitas' => $data->id_aktivitas,
-											'id_ibadah' => $data->id_ibadah,
-											'nama_aktivitas' => $aktivitas[$num]->nama_aktivitas,
-											'image' => $data->image,
-											'ibadah' => $ibadah[0]->nama,
-											'tempat' => $data->tempat,
-											'bersama' => $data->bersama,
-											'nominal' => $data->nominal,
-											'point' => $data->point,
-											'tanggal' => $data->tanggal,
-											'jam' => $data->jam
-										);
 								}
 
 								$result = array(
