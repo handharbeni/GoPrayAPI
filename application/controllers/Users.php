@@ -104,6 +104,7 @@ class Users extends REST_Controller {
 									$ibadah = $this->db->get('m_'.$hsl[$num]->prefix_table)->result();
 
 									$results[] = array(
+											'id_user' =>$data->id_user,
 											'id_aktivitas' => $data->id_aktivitas,
 											'id_ibadah' => $data->id_ibadah,
 											'nama_aktivitas' => $aktivitas[$num]->nama_aktivitas,
