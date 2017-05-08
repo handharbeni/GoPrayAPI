@@ -46,6 +46,11 @@
 => tanggal
 => jam
 
+# POST Meme
+=> access_token
+=> text
+=> gambar (optional)
+
 [Master]
 # GET Sholat
 /v1/master/sholat?access_token={AT}
