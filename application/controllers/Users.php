@@ -751,9 +751,17 @@ class Users extends REST_Controller {
 										$status = 'Meme gagal dibuat!';
 									}
 
+									$query = $this->db
+									->select( array('path_meme','tanggal','jam'))
+									->from('t_meme')
+									->where( array('id_user' => $akun->result()[0]->id))
+									->order_by('tanggal DESC','jam DESC')
+									->get();
+
 									$result = array(
 											'return' => true,
-											'status' => $status
+											'status' => $status,
+											'data_meme' => $query->result()
 										);
 								}
 							}
