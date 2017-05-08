@@ -99,10 +99,14 @@ class Users extends REST_Controller {
 
 								foreach($hsl as $num => $data)
 								{
-									$aktivitas = $this->db->query("SELECT m_aktivitas.nama AS nama_aktivitas FROM m_aktivitas , t_timeline WHERE t_timeline.id_aktivitas = m_aktivitas.id")->result();
+									$aktivitas = $this->db->query("SELECT m_aktivitas.nama AS nama_aktivitas , m_aktivitas.nama_ibadah AS nama_ibadah FROM m_aktivitas , t_timeline WHERE t_timeline.id_aktivitas = m_aktivitas.id")->result();
+
 									$sQuery = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'gopray_api' AND table_name = 'm_".$hsl[$num]->prefix_table."'";
+
 									$checkTable = $this->db->query($sQuery);
-									if($checkTable->num_rows() > 0){
+
+									if($checkTable->num_rows() > 0)
+									{
 										$ibadah = $this->db->get('m_'.$hsl[$num]->prefix_table)->result();
 										$results[] = array(
 												'id_timeline' =>$data->id,
@@ -119,15 +123,17 @@ class Users extends REST_Controller {
 												'tanggal' => $data->tanggal,
 												'jam' => $data->jam
 											);
-									}else{
+									}
+									else
+									{
 										$results[] = array(
 												'id_timeline' =>$data->id,
 												'id_user' =>$data->id_user,
 												'id_aktivitas' => $data->id_aktivitas,
 												'id_ibadah' => $data->id_ibadah,
-												'nama_aktivitas' => $aktivitas[$num]->nama_aktivitas,
+												'nama_aktivitas' => $data->nama_ibadah,
 												'image' => $data->image,
-												'ibadah' => "",
+												'ibadah' => $data->nama_ibadah,
 												'tempat' => $data->tempat,
 												'bersama' => $data->bersama,
 												'nominal' => $data->nominal,
@@ -563,11 +569,12 @@ class Users extends REST_Controller {
 							$id_ibadah = $this->post('id_ibadah');
 							$tempat = $this->post('tempat');
 							$bersama = $this->post('bersama');
+							$gambar = $this->post('gambar');
 							$point = $this->post('point');
 							$tanggal = $this->post('tanggal');
 							$jam = $this->post('jam');
 
-							if ( ! $accessToken || ! $id_aktivitas || ! $id_ibadah || ! $tempat || ! $bersama || ! $point)
+							if ( ! $accessToken || ! $id_aktivitas || ! $id_ibadah || ! $tempat || ! $bersama || ! $gambar || ! $point)
 							{
 								$result = array(
 									'return' => false,
@@ -594,6 +601,7 @@ class Users extends REST_Controller {
 											'id_ibadah' => $id_ibadah,
 											'tempat' => $tempat,
 											'bersama' => $bersama,
+											'image' => $gambar,
 											'point' => $point,
 											'tanggal' => $tanggal,
 											'jam' => $jam

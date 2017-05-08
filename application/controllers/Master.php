@@ -188,6 +188,70 @@ class Master extends REST_Controller {
 					}
 				break;
 
+				case 'stiker':
+					$dataUser = $check->result();
+
+					$masterStiker = $this->db->order_by('tanggal DESC','jam DESC')->get('m_stiker');
+
+					$results = array();
+
+					foreach($masterStiker->result() as $data)
+					{
+						$checkPayment = $this->db->select( array('kd_stiker','status_payment'))->from('t_avail_stiker')->where( array('kd_user' => $dataUser[0]->id,'kd_stiker' => $data->id))->get();
+
+						$childStiker = $this->db->select( array('stiker','nomer','tanggal','jam'))->from('t_stiker')->where ( array('kd_stiker' => $data->id))->get();
+
+						$results[] = array(
+								'nama_stiker' => $data->nama,
+								'cover' => $data->cover,
+								'harga' => $data->price,
+								'tanggal' => $data->tanggal,
+								'jam' => $data->jam,
+								'payment' => ( $checkPayment->num_rows() == 0) ? '0' : $checkPayment->result()[0]->status_payment,
+								'items' => ( $childStiker->num_rows() == 0) ? 'null' : $childStiker->result()
+ 							);
+					}
+
+					$result = array(
+							'return' => true,
+							'total_stiker' => $masterStiker->num_rows(),
+							'data' => $results
+						);
+				break;
+
+				case 'paketstiker':
+					$query = $this->db->get('m_paket_stiker');
+
+					$results = array();
+
+					foreach($query->result() as $data)
+					{
+						$queryPaketStiker = $this->db->get_where('t_paket_stiker' , array('kd_paket_stiker' => $data->id))->result();
+
+						$listStiker = array();
+
+						foreach($queryPaketStiker as $dataPaketStiker)
+						{
+							$dataStiker = $this->db->select( array('nama','cover','price','tanggal','jam'))->from('m_stiker')->where ( array('id' => $dataPaketStiker->kd_stiker))->get();
+
+							$listStiker[] = $dataStiker->result()[0];
+						}
+
+						$results[] = array(
+							'nama_paket' => $data->name,
+							'harga' => $data->price,
+							'tanggal' => $data->tanggal,
+							'jam' => $data->jam,
+							'list_stiker' => $listStiker,
+						);
+					}
+
+					$result = array(
+							'return' => true,
+							'data' => $results
+						);
+				break;
+
 				default:
 					$result = array(
 							'return' => false,
