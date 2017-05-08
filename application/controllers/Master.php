@@ -21,7 +21,6 @@ class Master extends REST_Controller {
 
 	public function index_get($option = '')
 	{
-		$this->logdata['method'] = 'GET';
 		// $this->logdata['method'] = 'GET';
 		// catatLog($this->logdata);
 
@@ -188,6 +187,8 @@ class Master extends REST_Controller {
 					}
 				break;
 
+
+				// Stiker section
 				case 'stiker':
 					$dataUser = $check->result();
 
@@ -219,6 +220,7 @@ class Master extends REST_Controller {
 						);
 				break;
 
+				// Paket stiker section
 				case 'paketstiker':
 					$query = $this->db->get('m_paket_stiker');
 
@@ -249,6 +251,29 @@ class Master extends REST_Controller {
 					$result = array(
 							'return' => true,
 							'data' => $results
+						);
+				break;
+
+				case 'meme':
+					$query = $this->db
+					->select( array('path_meme','tanggal','jam'))
+					->from('t_meme')
+					->where( array('id_user' => $check->result()[0]->id))
+					->order_by('tanggal DESC','jam DESC')
+					->get();
+
+					if ( $query->num_rows() == 0)
+					{
+						$data = 'Data masih kosong!';
+					}
+					else
+					{
+						$data = $query->result();
+					}
+
+					$result = array(
+							'return' => true,
+							'data' => $data
 						);
 				break;
 

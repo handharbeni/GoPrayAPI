@@ -2,14 +2,26 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 require APPPATH . '/libraries/REST_Controller.php';
+foreach( scandir(FCPATH.'resources/src') as $dir)
+{
+	if ( ! str_replace( array('.','...') , '' , $dir))
+	{
+		continue;
+	}
+
+	require FCPATH.'resources/src/'.$dir;
+}
 
 use Restserver\Libraries\REST_Controller;
+use GDText\Box;
+use GDText\Color;
 
 class Users extends REST_Controller {
 
 	public function __construct()
 	{
 		parent::__construct();
+		$this->load->helper('file');
 
 		$this->logdata = array(
 				'method' => 'NOT_SET',
@@ -614,6 +626,129 @@ class Users extends REST_Controller {
 									else
 									{
 										$status = 'gagal';
+									}
+
+									$result = array(
+											'return' => true,
+											'status' => $status
+										);
+								}
+							}
+						break;
+
+						case 'meme':
+							$this->db->where('key' , $accessToken);
+
+							$akun = $this->db->get('m_akun');
+
+							if ( ! $akun->num_rows() > 0 || ! $accessToken)
+							{
+								$result = array(
+										'return' => false,
+										'error_message' => 'Access token salah atau tidak ditemukan!'
+									);
+							}
+							else
+							{
+								$imagedir = FCPATH.'resources/images/';
+								$images = glob($imagedir . '*.{jpg,jpeg,png,gif}',GLOB_BRACE);
+								$randomimage = $images[array_rand($images)];
+
+								$text = ( ! $this->post('text')) ? null : substr($this->post('text'),0,50);
+								$gambar = ( ! $this->post('gambar')) ? $randomimage : $this->post('gambar');
+								$mime = get_mime_by_extension($gambar);
+								$mimeAccepted = array('image/jpeg' ,'image/png');
+
+								if ( ! $this->post('text') || $text == null)
+								{
+									$result = array(
+											'result' => false,
+											'error_message' => 'Field text tidak boleh kosong!'
+										);
+								}
+								elseif( ! in_array($mime,$mimeAccepted))
+								{
+									$result = array(
+											'result' => false,
+											'error_message' => 'Gambar hanya boleh berekstensi JPG/PNG'
+										);
+								}
+								else
+								{
+									$this->textMeme = $text;
+									$this->gambarMeme = ($mime == 'image/png') ? imagecreatefrompng($gambar) : imagecreatefromjpeg($gambar);
+
+									/* Create meme */
+									$box = new Box($this->gambarMeme);
+									$box->setFontSize(100);
+									$box->setFontFace(FCPATH.'resources/fonts/arial.ttf');
+									$box->setFontColor(new Color(255, 255, 255));
+									$box->setTextShadow(
+									    new Color(0, 0, 0, 80),
+									    0,
+									    -1
+									);
+
+									$box->setBox(
+									    0,
+									    0,
+									    imagesx($this->gambarMeme),
+									    imagesy($this->gambarMeme)
+									);
+
+									// $box->setBackgroundColor(new Color(0,0,0,80));
+									$box->setTextAlign('center', 'center');
+									$box->draw($this->textMeme);
+									/* Create meme */
+
+									/* GoPray Watermark */
+									$box = new Box($this->gambarMeme);
+									$box->setFontSize(100);
+									$box->setFontFace(FCPATH.'resources/fonts/arial.ttf');
+									$box->setFontColor(new Color(255, 255, 255)); 
+									$box->setBox(
+									    -60,
+									    -60,
+									    imagesx($this->gambarMeme),
+									    imagesy($this->gambarMeme)
+									);
+
+									$box->setTextAlign('right','bottom');
+									$box->draw('GoPray');
+
+									/* GoPray Watermark */
+
+									$upload_dir = FCPATH.'resources/';
+
+									if ( ! is_dir($upload_dir.'uploads'))
+									{
+										mkdir(FCPATH.'uploads/');
+										@chmod ( FCPATH.'uploads/' , 0754);
+									}
+
+									$filenameUpload = $upload_dir.'uploads/'.generate_image($this->gambarMeme).'png';
+									imagepng($this->gambarMeme, $filenameUpload, 9);
+									imagedestroy($this->gambarMeme);
+
+									/* image filename */
+									$x = explode('/' , $filenameUpload);
+									$count = count($x) - 1;
+									/* image filename */
+
+									$data = array(
+											'id_user' => $akun->result()[0]->id,
+											'path_meme' => $x[$count],
+											'tanggal' => date('Y-m-d'),
+											'jam' => date('H:i:s')
+										);
+
+									if ( $this->db->insert('t_meme' , $data))
+									{
+										$status = 'Meme berhasil dibuat!';
+									}
+									else
+									{
+										$status = 'Meme gagal dibuat!';
 									}
 
 									$result = array(
