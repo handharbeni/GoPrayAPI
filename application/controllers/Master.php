@@ -21,7 +21,6 @@ class Master extends REST_Controller {
 
 	public function index_get($option = '')
 	{
-		$this->logdata['method'] = 'GET';
 		// $this->logdata['method'] = 'GET';
 		// catatLog($this->logdata);
 
@@ -186,6 +185,96 @@ class Master extends REST_Controller {
 							'items' => ( $jadwal->num_rows() == 0) ? 'Jadwal belum ada!' : $jadwal->result()  
 						);
 					}
+				break;
+
+
+				// Stiker section
+				case 'stiker':
+					$dataUser = $check->result();
+
+					$masterStiker = $this->db->order_by('tanggal DESC','jam DESC')->get('m_stiker');
+
+					$results = array();
+
+					foreach($masterStiker->result() as $data)
+					{
+						$checkPayment = $this->db->select( array('kd_stiker','status_payment'))->from('t_avail_stiker')->where( array('kd_user' => $dataUser[0]->id,'kd_stiker' => $data->id))->get();
+
+						$childStiker = $this->db->select( array('stiker','nomer','tanggal','jam'))->from('t_stiker')->where ( array('kd_stiker' => $data->id))->get();
+
+						$results[] = array(
+								'nama_stiker' => $data->nama,
+								'cover' => $data->cover,
+								'harga' => $data->price,
+								'tanggal' => $data->tanggal,
+								'jam' => $data->jam,
+								'payment' => ( $checkPayment->num_rows() == 0) ? '0' : $checkPayment->result()[0]->status_payment,
+								'items' => ( $childStiker->num_rows() == 0) ? 'null' : $childStiker->result()
+ 							);
+					}
+
+					$result = array(
+							'return' => true,
+							'total_stiker' => $masterStiker->num_rows(),
+							'data' => $results
+						);
+				break;
+
+				// Paket stiker section
+				case 'paketstiker':
+					$query = $this->db->get('m_paket_stiker');
+
+					$results = array();
+
+					foreach($query->result() as $data)
+					{
+						$queryPaketStiker = $this->db->get_where('t_paket_stiker' , array('kd_paket_stiker' => $data->id))->result();
+
+						$listStiker = array();
+
+						foreach($queryPaketStiker as $dataPaketStiker)
+						{
+							$dataStiker = $this->db->select( array('nama','cover','price','tanggal','jam'))->from('m_stiker')->where ( array('id' => $dataPaketStiker->kd_stiker))->get();
+
+							$listStiker[] = $dataStiker->result()[0];
+						}
+
+						$results[] = array(
+							'nama_paket' => $data->name,
+							'harga' => $data->price,
+							'tanggal' => $data->tanggal,
+							'jam' => $data->jam,
+							'list_stiker' => $listStiker,
+						);
+					}
+
+					$result = array(
+							'return' => true,
+							'data' => $results
+						);
+				break;
+
+				case 'meme':
+					$query = $this->db
+					->select( array('path_meme','tanggal','jam'))
+					->from('t_meme')
+					->where( array('id_user' => $check->result()[0]->id))
+					->order_by('tanggal DESC','jam DESC')
+					->get();
+
+					if ( $query->num_rows() == 0)
+					{
+						$data = 'Data masih kosong!';
+					}
+					else
+					{
+						$data = $query->result();
+					}
+
+					$result = array(
+							'return' => true,
+							'data' => $data
+						);
 				break;
 
 				default:

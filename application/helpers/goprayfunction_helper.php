@@ -178,6 +178,21 @@ if ( ! function_exists('generate_string'))
 	}
 }
 
+if ( ! function_exists('random_string'))
+{
+	function random_string($length) 
+	{
+	    $key = '';
+	    $keys = array_merge(range(0, 9), range('a', 'z'));
+
+	    for ($i = 0; $i < $length; $i++) {
+	        $key .= $keys[array_rand($keys)];
+	    }
+
+	    return $key;
+	}
+}
+
 if ( ! function_exists('generate_key'))
 {
 	function generate_key()
@@ -186,6 +201,20 @@ if ( ! function_exists('generate_key'))
 		$key2 = generate_string('7');
 		$key3 = strrev(strtotime( date('Y-m-d H:i:s')));
 		return $key1.'-'.$key2.'-'.$key3;
+	}
+}
+
+if ( ! function_exists('generate_image'))
+{
+	function generate_image($fileimage)
+	{
+		$key1 = substr( md5(uniqid(rand(), true)),0,15);
+		$key2 = substr( md5($fileimage.time()),0,15);
+		$key3 = random_string(15);
+		$x = explode('.',$fileimage);
+		$ext = count($x)-1;
+
+		return $key1.'-'.$key2.'-'.$key3.'.'.$x[$ext];
 	}
 }
 
