@@ -103,20 +103,27 @@ class Users extends REST_Controller {
 							}
 							else
 							{
-								$sql = "SELECT * FROM m_aktivitas , m_akun , t_timeline WHERE m_akun.key = '".$accessToken."' AND t_timeline.id_user = '".$check->result()[0]->id."' AND t_timeline.id_aktivitas = m_aktivitas.id ORDER BY t_timeline.tanggal DESC , t_timeline.jam DESC";
+								$sqlNew = "SELECT * FROM
+											t_timeline
+											LEFT JOIN m_akun ON m_akun.id = t_timeline.id_user
+											LEFT JOIN m_aktivitas ON m_aktivitas.id = t_timeline.id_aktivitas
+											WHERE m_akun.key = '".$accessToken."'
+											ORDER BY t_timeline.tanggal DESC , t_timeline.jam DESC";
+											
+								// $sql = "SELECT * FROM m_aktivitas , m_akun , t_timeline WHERE m_akun.key = '".$accessToken."' AND t_timeline.id_user = '".$check->result()[0]->id."' AND t_timeline.id_aktivitas = m_aktivitas.id ORDER BY t_timeline.tanggal DESC , t_timeline.jam DESC";
 
-								$hsl = $this->db->query($sql)->result();
+								$hsl = $this->db->query($sqlNew)->result();
 
 								$results = array();
 
 								foreach($hsl as $num => $data)
 								{
-									$queryNew = "SELECT 
-													m_aktivitas.nama as nama_aktivitas,
-													m_aktivitas.nama_ibadah as nama_ibadah
-												FROM t_timeline
-												INNER JOIN m_aktivitas ON t_timeline.id_aktivitas = m_aktivitas.id";
-									$aktivitas = $this->db->query($queryNew)->result();
+									// $queryNew = "SELECT 
+									// 				m_aktivitas.nama as nama_aktivitas,
+									// 				m_aktivitas.nama_ibadah as nama_ibadah
+									// 			FROM t_timeline
+									// 			LEFT JOIN m_aktivitas ON t_timeline.id_aktivitas = m_aktivitas.id";
+									// $aktivitas = $this->db->query($queryNew)->result();
 									// $aktivitas = $this->db->query("SELECT m_aktivitas.nama AS nama_aktivitas , m_aktivitas.nama_ibadah AS nama_ibadah FROM m_aktivitas , t_timeline WHERE t_timeline.id_aktivitas = m_aktivitas.id")->result();
 
 									$sQuery = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'gopray_api' AND table_name = 'm_".$hsl[$num]->prefix_table."'";
