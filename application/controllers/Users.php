@@ -111,7 +111,13 @@ class Users extends REST_Controller {
 
 								foreach($hsl as $num => $data)
 								{
-									$aktivitas = $this->db->query("SELECT m_aktivitas.nama AS nama_aktivitas , m_aktivitas.nama_ibadah AS nama_ibadah FROM m_aktivitas , t_timeline WHERE t_timeline.id_aktivitas = m_aktivitas.id")->result();
+									$queryNew = "SELECT 
+													m_aktivitas.nama as nama_aktivitas,
+													m_aktivitas.nama_ibadah as nama_ibadah
+												FROM t_timeline
+												INNER JOIN m_aktivitas ON t_timeline.id_aktivitas = m_aktivitas.id";
+									$aktivitas = $this->db->query($queryNew)->result();
+									// $aktivitas = $this->db->query("SELECT m_aktivitas.nama AS nama_aktivitas , m_aktivitas.nama_ibadah AS nama_ibadah FROM m_aktivitas , t_timeline WHERE t_timeline.id_aktivitas = m_aktivitas.id")->result();
 
 									$sQuery = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'gopray_api' AND table_name = 'm_".$hsl[$num]->prefix_table."'";
 
