@@ -136,8 +136,6 @@ class Users extends REST_Controller {
 												'jam' => $data->jam
 											);
 									}
-									
-
 								}
 
 								$result = array(
