@@ -211,10 +211,10 @@ if ( ! function_exists('generate_image'))
 		$key1 = substr( md5(uniqid(rand(), true)),0,15);
 		$key2 = substr( md5($fileimage.time()),0,15);
 		$key3 = random_string(15);
-		$x = explode('.',$fileimage);
-		$ext = count($x)-1;
+		// $x = explode('.',$fileimage);
+		// $ext = count($x)-1;
 
-		return $key1.'-'.$key2.'-'.$key3.'.'.$x[$ext];
+		return $key1.'-'.$key2.'-'.$key3;
 	}
 }
 

@@ -88,6 +88,44 @@ class Users extends REST_Controller {
 				if ( $action != null)
 				{
 					switch ( trimLower($action)) {
+						// Profpic section
+						case 'meme' :
+							$this->db->where('key' , $accessToken);
+							$check = $this->db->get('m_akun');
+							if ( ! $check->num_rows() > 0){
+								$result = array(
+										'return' => false,
+									);
+							}else{
+								$query = $this->db
+								->select( array('id','path_meme','tanggal','jam'))
+								->from('t_meme')
+								->where( array('id_user' => $check->row()->id))
+								->order_by('id DESC','jam DESC')
+								->get();
+
+								$result = array(
+										'return' => true,
+										'data' => $query->result()
+									);
+							}							
+
+						break;
+						case 'profile':
+							$this->db->where('key' , $accessToken);
+							$check = $this->db->get('m_akun');
+							if ( ! $check->num_rows() > 0){
+								$result = array(
+										'return' => false,
+										'error_message' => 'Access token salah atau tidak ditemukan!'
+									);
+							}else{
+								$result = array(
+										'return' => true,
+										'picture'=>$check->row()->profile_picture
+									);
+							}
+						break;
 						// Timeline section
 						case 'timeline':
 							$this->db->where('key' , $accessToken);
@@ -103,14 +141,12 @@ class Users extends REST_Controller {
 							}
 							else
 							{
-								$sqlNew = "SELECT * FROM
+								$sqlNew = "SELECT t_timeline.id as id_timeline, t_timeline.*, m_aktivitas.*, t_timeline.tanggal as tgl FROM
 											t_timeline
 											LEFT JOIN m_akun ON m_akun.id = t_timeline.id_user
 											LEFT JOIN m_aktivitas ON m_aktivitas.id = t_timeline.id_aktivitas
 											WHERE m_akun.key = '".$accessToken."'
 											ORDER BY t_timeline.tanggal DESC , t_timeline.jam DESC";
-											
-								// $sql = "SELECT * FROM m_aktivitas , m_akun , t_timeline WHERE m_akun.key = '".$accessToken."' AND t_timeline.id_user = '".$check->result()[0]->id."' AND t_timeline.id_aktivitas = m_aktivitas.id ORDER BY t_timeline.tanggal DESC , t_timeline.jam DESC";
 
 								$hsl = $this->db->query($sqlNew)->result();
 
@@ -118,31 +154,17 @@ class Users extends REST_Controller {
 
 								foreach($hsl as $num => $data)
 								{
-									// $queryNew = "SELECT 
-									// 				m_aktivitas.nama as nama_aktivitas,
-									// 				m_aktivitas.nama_ibadah as nama_ibadah
-									// 			FROM t_timeline
-									// 			LEFT JOIN m_aktivitas ON t_timeline.id_aktivitas = m_aktivitas.id";
-									// $aktivitas = $this->db->query($queryNew)->result();
-									// $aktivitas = $this->db->query("SELECT m_aktivitas.nama AS nama_aktivitas , m_aktivitas.nama_ibadah AS nama_ibadah FROM m_aktivitas , t_timeline WHERE t_timeline.id_aktivitas = m_aktivitas.id")->result();
-
 									$sQuery = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'gopray_api' AND table_name = 'm_".$hsl[$num]->prefix_table."'";
 
 									$checkTable = $this->db->query($sQuery);
-									$namaIbadah = "";
-									switch ($checkTable->num_rows()) {
-										case 0 :
-											$namaIbadah = $data->nama_ibadah;
-											break;
-										case 1 :
-										case 2 :									
-										default:
-											$ibadah = $this->db->get('m_'.$hsl[$num]->prefix_table)->result();
-											$namaIbadah = $ibadah[0]->nama;
-											break;
+									$namaIbadah = $data->nama_ibadah;
+									if ($checkTable->num_rows() > 0) {
+										$this->db->where('id', $data->id_ibadah);
+										$ibadah = $this->db->get('m_'.$hsl[$num]->prefix_table)->result();
+										$namaIbadah = $ibadah[0]->nama;
 									}
 									$results[] = array(
-											'id_timeline' =>$data->id,
+											'id_timeline' =>$data->id_timeline,
 											'id_user' =>$data->id_user,
 											'id_aktivitas' => $data->id_aktivitas,
 											'id_ibadah' => $data->id_ibadah,
@@ -153,7 +175,7 @@ class Users extends REST_Controller {
 											'bersama' => $data->bersama,
 											'nominal' => $data->nominal,
 											'point' => $data->point,
-											'tanggal' => $data->tanggal,
+											'tanggal' => $data->tgl,
 											'jam' => $data->jam
 										);									
 								}
@@ -582,12 +604,14 @@ class Users extends REST_Controller {
 							$tempat = $this->post('tempat');
 							$bersama = $this->post('bersama');
 							$gambar = $this->post('gambar');
+							$nominal = $this->post('nominal');
 							$point = $this->post('point');
 							$tanggal = $this->post('tanggal');
 							$jam = $this->post('jam');
 
-							if ( ! $accessToken || ! $id_aktivitas || ! $id_ibadah || ! $tempat || ! $bersama || ! $gambar || ! $point)
-							{
+							if ( ! $accessToken || ! $id_aktivitas || ! $id_ibadah || ! $tempat 
+								|| ! $bersama || ! $gambar || ! $point)
+							{								
 								$result = array(
 									'return' => false,
 									'error_message' => 'Masih ada field yang kosong!'
@@ -614,6 +638,7 @@ class Users extends REST_Controller {
 											'tempat' => $tempat,
 											'bersama' => $bersama,
 											'image' => $gambar,
+											'nominal' => $nominal,
 											'point' => $point,
 											'tanggal' => $tanggal,
 											'jam' => $jam
@@ -651,12 +676,16 @@ class Users extends REST_Controller {
 							else
 							{
 								$imagedir = FCPATH.'resources/images/';
+								$imagedirtemp = FCPATH.'resources/tempimages/';
 								$images = glob($imagedir . '*.{jpg,jpeg,png,gif}',GLOB_BRACE);
 								$randomimage = $images[array_rand($images)];
 
 								$text = ( ! $this->post('text')) ? null : substr($this->post('text'),0,50);
-								$gambar = ( ! $this->post('gambar')) ? $randomimage : $this->post('gambar');
-								$mime = get_mime_by_extension($gambar);
+								$namaGambar = $imagedirtemp.$_FILES['gambar']['name'];
+								$_FILES['gambar'] ? move_uploaded_file($_FILES['gambar']['tmp_name'], $namaGambar) : $randomimage;
+								$gambar = ( ! $_FILES['gambar'] ) ? $randomimage : $namaGambar;
+								// $mime = get_mime_by_extension($gambar);
+								$mime = $_FILES['gambar']['type'];
 								$mimeAccepted = array('image/jpeg' ,'image/png');
 
 								if ( ! $this->post('text') || $text == null)
@@ -722,13 +751,13 @@ class Users extends REST_Controller {
 
 									if ( ! is_dir($upload_dir.'uploads'))
 									{
-										mkdir(FCPATH.'uploads/');
-										@chmod ( FCPATH.'uploads/' , 0754);
+										mkdir(FCPATH.'resources/uploads/');
+										@chmod ( FCPATH.'resources/uploads/' , 0777);
 									}
 
-									$filenameUpload = $upload_dir.'uploads/'.generate_image($this->gambarMeme).'png';
+									$filenameUpload = $upload_dir.'uploads/'.generate_image($this->gambarMeme).'.png';
 									imagepng($this->gambarMeme, $filenameUpload, 9);
-									imagedestroy($this->gambarMeme);
+									// imagedestroy($this->gambarMeme);
 
 									/* image filename */
 									$x = explode('/' , $filenameUpload);
@@ -737,7 +766,8 @@ class Users extends REST_Controller {
 
 									$data = array(
 											'id_user' => $akun->result()[0]->id,
-											'path_meme' => $x[$count],
+											'path_meme' => base_url("resources/uploads/".$x[$count]),
+											// 'path_meme' => $filenameUpload,
 											'tanggal' => date('Y-m-d'),
 											'jam' => date('H:i:s')
 										);
@@ -752,10 +782,10 @@ class Users extends REST_Controller {
 									}
 
 									$query = $this->db
-									->select( array('path_meme','tanggal','jam'))
+									->select( array('id','path_meme','tanggal','jam'))
 									->from('t_meme')
 									->where( array('id_user' => $akun->result()[0]->id))
-									->order_by('tanggal DESC','jam DESC')
+									->order_by('id DESC','jam DESC')
 									->get();
 
 									$result = array(
