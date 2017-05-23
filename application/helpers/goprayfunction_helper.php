@@ -233,3 +233,64 @@ if ( ! function_exists('validEmail'))
         return $string;
     }
 }
+
+if ( ! function_exists('ampm_to_24'))
+{
+	function ampm_to_24($time)
+	{
+		/*
+		$x[0] = waktu
+		$x[1] = am/pm
+				
+		$t[0] = jam
+		$t[1] = menit
+		*/
+		$x = explode(' ',$time);
+		$t = explode(':' , $x[0]);
+
+		$outut = null;
+
+		switch($x[1])
+		{
+			// 00 malam - 12 siang
+			case 'am':
+				switch($t[0])
+				{
+					case '01': $output = $t[0].':'.$t[1]; break;
+					case '02': $output = $t[0].':'.$t[1]; break;
+					case '03': $output = $t[0].':'.$t[1]; break;
+					case '04': $output = $t[0].':'.$t[1]; break;
+					case '05': $output = $t[0].':'.$t[1]; break;
+					case '06': $output = $t[0].':'.$t[1]; break;
+					case '07': $output = $t[0].':'.$t[1]; break;
+					case '08': $output = $t[0].':'.$t[1]; break;
+					case '09': $output = $t[0].':'.$t[1]; break;
+					case '10': $output = $t[0].':'.$t[1]; break;
+					case '11': $output = $t[0].':'.$t[1]; break;
+					case '12': $output = $t[0].':'.$t[1]; break;
+				}
+			break;
+
+			// 12 siang - 00 malam
+			case 'pm':
+				switch($t[0])
+				{
+					case '01': $output = '13:'.$t[1]; break;
+					case '02': $output = '14:'.$t[1]; break;
+					case '03': $output = '15:'.$t[1]; break;
+					case '04': $output = '16:'.$t[1]; break;
+					case '05': $output = '17:'.$t[1]; break;
+					case '06': $output = '18:'.$t[1]; break;
+					case '07': $output = '19:'.$t[1]; break;
+					case '08': $output = '20:'.$t[1]; break;
+					case '09': $output = '21:'.$t[1]; break;
+					case '10': $output = '22:'.$t[1]; break;
+					case '11': $output = '23:'.$t[1]; break;
+					case '12': $output = '00:'.$t[1]; break;
+				}
+			break;
+		}
+
+		return $output;
+	}
+}
