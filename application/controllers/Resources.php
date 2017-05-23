@@ -23,7 +23,12 @@ class Resources extends REST_Controller {
 		$this->logdata['method'] = 'GET';
 		// catatLog($this->logdata);
 
-		return $this->response( array('return' => false , 'error_message' => 'Parameter tidak ditemukan.'));
+		$result = array(
+			'return' => false, 
+			'error_message' => 'Parameter tidak ditemukan.'
+			);
+
+		return $this->response($result);
 	}
 
 }
