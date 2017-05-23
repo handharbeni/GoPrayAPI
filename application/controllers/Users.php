@@ -154,7 +154,7 @@ class Users extends REST_Controller {
 
 								foreach($hsl as $num => $data)
 								{
-									$sQuery = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'gopray_api' AND table_name = 'm_".$hsl[$num]->prefix_table."'";
+									$sQuery = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'gopray_db' AND table_name = 'm_".$hsl[$num]->prefix_table."'";
 
 									$checkTable = $this->db->query($sQuery);
 									$namaIbadah = $data->nama_ibadah;
@@ -265,58 +265,73 @@ class Users extends REST_Controller {
 						break;
 					}
 				}
-			break;		
+			break;
 
-			case 'search':
-				if ( ! $q)
+			case 'parent':
+				if ( ! $accessToken )
 				{
-					$result = array( 
+					$result = array(
 							'return' => false,
-							'error_message' => 'Parameter q tidak boleh kosong'
+							'error_message' => 'Access token tidak valid!'
 						);
 				}
-				elseif( ! $accessToken)
+
+				if ( $action != null)
 				{
-					$result = array( 
-
-						'return' => false,
-						'error_message' => 'Access token tidak valid!'
-					);
-				}
-				else
-				{
-					$this->db->where('key' , $accessToken);
-
-					if ( ! $this->db->get('m_akun')->num_rows() > 0)
+					switch( trimLower($action))
 					{
-						$result = array(
-								'return' => false,
-								'error_message' => 'Access token salah atau tidak ditemukan!'
-							);
-					}
-					else
-					{
-						$this->db->like('nama' , $q);
+						case 'timeline':
+							$query = $this->db->get_where('m_family' , array('key' => $accessToken));
 
-						$query = $this->db->get('m_akun');
-						$data = array();
-
-						foreach($query->result() as $row)
-						{
-							$data[] = array(
-									'nama' => $row->nama,
-									'email' => $row->email,
-									'profile_picture' => ( $row->profile_picture == null) ? 'null' : $row->profile_picture,
-									'tanggal' => $row->tanggal,
-									'key' => $row->key
+							if ( $query->num_rows() == 0)
+							{
+								$result = array(
+									'return' => false,
+									'error_message' => 'Access token salah atau tidak ditemukan!'
 								);
-						}
+							}
+							else
+							{
+								$dataParent = $query->result()[0];
 
-						$result = array(
-								'return' => true,
-								'data' => $data
-							);
+								$sql = "SELECT t_timeline.id as id_timeline, t_timeline.*, m_aktivitas.*, t_timeline.tanggal as tgl FROM
+										t_timeline
+										LEFT JOIN m_akun ON m_akun.id = t_timeline.id_user
+										LEFT JOIN m_aktivitas ON m_aktivitas.id = t_timeline.id_aktivitas
+										WHERE t_timeline.id_user IN (".$dataParent->child.")
+										ORDER BY t_timeline.tanggal DESC , t_timeline.jam DESC";
+
+								$hsl = $this->db->query($sql)->result();
+								
+								$temp = array();
+
+								foreach($hsl as $row)
+								{									
+									array_push($temp, $row);
+								}
+								
+								array_merge($temp);
+
+								$result = array(
+									'return' => true,
+									'data' => $temp
+								);
+							}
+						break;
+
+						default:
+							$result = array(
+									'return' => false,
+									'error_message' => 'Parameter tidak ditemukan'
+								);
+						break;
 					}
+				}else
+				{
+					$result = array(
+							'return' => false,
+							'error_message' => 'Parameter tidak ditemukan'
+						);
 				}
 			break;
 
@@ -523,10 +538,12 @@ class Users extends REST_Controller {
 							}
 						break;
 
-						// insert/update kerabat section
 						case 'kerabat':
 							$this->db->where('key' , $accessToken);
-							if ( ! $this->db->get('m_akun')->num_rows() > 0)
+
+							$query = $this->db->get('m_akun');
+
+							if ( ! $query->num_rows() > 0)
 							{
 								$result = array(
 										'return' => false,
@@ -535,14 +552,9 @@ class Users extends REST_Controller {
 							}
 							else
 							{
-								$metode = $this->post('metode');
-								$kerabat = $this->post('kerabat');
-								$nama = $this->post('nama');
-								$gambar = $this->post('gambar');
-								$noHp = $this->post('no_hp');
 								$email = $this->post('email');
 
-								if ( ! $accessToken || ! $kerabat || ! $nama || ! $noHp || ! $email || ! $metode || ! $gambar)
+								if ( ! $accessToken || ! $email)
 								{
 									$result = array(
 											'return' => false,
@@ -551,47 +563,29 @@ class Users extends REST_Controller {
 								}
 								else
 								{
-									$listMetode = array('insert','update');
+									$checkKerabat = $this->db
+									->get_where('t_closest_family' , array('email' => $email));
 
-									if ( ! in_array($metode , $listMetode))
+									if ( $checkKerabat->num_rows() > 0)
 									{
 										$result = array(
 												'return' => false,
-												'error_message' => 'Metode tidak diperbolehkan'
+												'error_message' => 'Kerabat sudah ditambahkan.'
 											);
 									}
 									else
 									{
-										$this->db->where('key' , $accessToken);
-
-										$query = $this->db->get('m_akun');
-
 										$data = array(
-											'id_user' => $query->result()[0]->id,
-											'kerabat' => $kerabat,
-											'nama' => $nama,
-											'email' => $email,
-											'gambar' => $gambar,
-											'no_hp' => $noHp,
-											'tanggal' => date('Y-m-d'),
-											'jam' => date('H:i:s')
-										);
+												'id_user' => $query->result()[0]->id,
+												'id_kerabat' => 0,
+												'email' => $email
+											);
 
-										if ( $metode == 'insert')
-										{
-											if ( $this->db->insert('t_closest_family' , $data))
-											{
-												$status = 'sukses';
-											}
-											else
-											{
-												$status = 'gagal';
-											}
-										}
+										$this->db->insert('t_closest_family' , $data);
 
 										$result = array(
-												'return' => ( $status == 'sukses') ? true : false,
-												'status' =>  ( $status == 'sukses') ? 0 : 1
+												'return' => true,
+												'message' => 'Kerabat berhasil ditambahkan.'
 											);
 									}
 								}
@@ -664,9 +658,7 @@ class Users extends REST_Controller {
 
 						case 'meme':
 							$this->db->where('key' , $accessToken);
-
 							$akun = $this->db->get('m_akun');
-
 							if ( ! $akun->num_rows() > 0 || ! $accessToken)
 							{
 								$result = array(
@@ -680,7 +672,6 @@ class Users extends REST_Controller {
 								$imagedirtemp = FCPATH.'resources/tempimages/';
 								$images = glob($imagedir . '*.{jpg,jpeg,png,gif,JPG,JPEG,PNG,GIF,}',GLOB_BRACE);
 								$randomimage = $images[array_rand($images)];
-
 								$text = ( ! $this->post('text')) ? null : substr($this->post('text'),0,50);
 								$namaGambar = $imagedirtemp.$_FILES['gambar']['name'];
 								$_FILES['gambar'] ? move_uploaded_file($_FILES['gambar']['tmp_name'], $namaGambar) : $randomimage;
@@ -688,7 +679,6 @@ class Users extends REST_Controller {
 								// $mime = get_mime_by_extension($gambar);
 								$mime = $_FILES['gambar']['type'];
 								$mimeAccepted = array('image/jpeg' ,'image/png');
-
 								if ( ! $this->post('text') || $text == null)
 								{
 									$result = array(
@@ -707,7 +697,6 @@ class Users extends REST_Controller {
 								{
 									$this->textMeme = $text;
 									$this->gambarMeme = ($mime == 'image/png') ? imagecreatefrompng($gambar) : imagecreatefromjpeg($gambar);
-
 									/* Create meme */
 									$box = new Box($this->gambarMeme);
 									$box->setFontSize(100);
@@ -718,19 +707,16 @@ class Users extends REST_Controller {
 									    0,
 									    -1
 									);
-
 									$box->setBox(
 									    0,
 									    0,
 									    imagesx($this->gambarMeme),
 									    imagesy($this->gambarMeme)
 									);
-
 									// $box->setBackgroundColor(new Color(0,0,0,80));
 									$box->setTextAlign('center', 'center');
 									$box->draw($this->textMeme);
 									/* Create meme */
-
 									/* GoPray Watermark */
 									$box = new Box($this->gambarMeme);
 									$box->setFontSize(100);
@@ -742,29 +728,22 @@ class Users extends REST_Controller {
 									    imagesx($this->gambarMeme),
 									    imagesy($this->gambarMeme)
 									);
-
 									$box->setTextAlign('right','bottom');
 									$box->draw('GoPray');
-
 									/* GoPray Watermark */
-
 									$upload_dir = FCPATH.'resources/';
-
 									if ( ! is_dir($upload_dir.'uploads'))
 									{
 										mkdir(FCPATH.'resources/uploads/');
 										@chmod ( FCPATH.'resources/uploads/' , 0777);
 									}
-
 									$filenameUpload = $upload_dir.'uploads/'.generate_image($this->gambarMeme).'.png';
 									imagepng($this->gambarMeme, $filenameUpload, 9);
 									// imagedestroy($this->gambarMeme);
-
 									/* image filename */
 									$x = explode('/' , $filenameUpload);
 									$count = count($x) - 1;
 									/* image filename */
-
 									$data = array(
 											'id_user' => $akun->result()[0]->id,
 											'path_meme' => base_url("resources/uploads/".$x[$count]),
@@ -772,7 +751,6 @@ class Users extends REST_Controller {
 											'tanggal' => date('Y-m-d'),
 											'jam' => date('H:i:s')
 										);
-
 									if ( $this->db->insert('t_meme' , $data))
 									{
 										$status = 'Meme berhasil dibuat!';
@@ -781,14 +759,12 @@ class Users extends REST_Controller {
 									{
 										$status = 'Meme gagal dibuat!';
 									}
-
 									$query = $this->db
 									->select( array('id','path_meme','tanggal','jam'))
 									->from('t_meme')
 									->where( array('id_user' => $akun->result()[0]->id))
 									->order_by('id DESC','jam DESC')
 									->get();
-
 									$result = array(
 											'return' => true,
 											'status' => $status,

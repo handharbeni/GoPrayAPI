@@ -17,6 +17,8 @@ class Master extends REST_Controller {
 				'ip_address' => $_SERVER['REMOTE_ADDR'],
 				'requestUri' => $_SERVER['REQUEST_URI']	
 			);
+
+		$this->keyMuslimSalat = "ffab61dcf338b971ae323f12520497f4";
 	}
 
 	public function index_get($option = '')
@@ -284,6 +286,67 @@ class Master extends REST_Controller {
 						);
 				break;
 			}
+		}
+
+		$this->response($result);
+	}
+
+	public function index_post($option = '')
+	{
+		switch( trimLower($option))
+		{
+			case 'jadwalsholat':
+				$method = $this->post('method');
+
+				$listMethod = array('monthly','yearly');
+
+				if ( ! in_array($method,$listMethod))
+				{
+					$result = array(
+							'return' => false,
+							'error_message' => 'Metode tidak ditemukan!'
+						);
+				}
+				else
+				{
+					$this->load->library('curl');
+
+					$uri = "http://muslimsalat.com";
+					$path = ( $method == 'monthly') ? '/jakarta/monthly.json' : '/jakarta/yearly.json';
+					$path .= "?key=".$this->keyMuslimSalat;
+
+					$dataGet = $this->curl->simple_get($uri.$path);
+
+					$fromResource = json_decode($dataGet);
+
+					foreach($fromResource->items as $row)
+					{
+						$x = $this->db
+						->get_where('t_jadwal_sholat' , array('tanggal' => $row->date_for));
+
+						if ( $x->num_rows() == 0)
+						{
+							$data = array(
+									'id_jadwal' => 1,
+									'tanggal' => $row->date_for,
+									'subuh' => ampm_to_24($row->fajr),
+									'dhuha' => ampm_to_24($row->shurooq),
+									'dhuhur' => ampm_to_24($row->dhuhr),
+									'ashar' => ampm_to_24($row->asr),
+									'maghrib' => ampm_to_24($row->maghrib),
+									'isya' => ampm_to_24($row->isha),
+								);
+
+							$this->db->insert('t_jadwal_sholat' , $data);
+						}
+					}
+
+					$result = array(
+						'return' => true,
+						'status' => 'Sukses Sinkron'
+					);
+				}
+			break;
 		}
 
 		$this->response($result);
