@@ -26,19 +26,6 @@ class Resources extends REST_Controller {
 		return $this->response( array('return' => false , 'error_message' => 'Parameter tidak ditemukan.'));
 	}
 
-	public function index_post()
-	{
-		$this->logdata['method'] = 'POST';
-
-		// catatLog($this->logdata);
-
-		$data = array(
-				'return' => TRUE,
-				'result' => 'test'
-			);
-		print_r($data);
-	}
-
 }
 
 /* End of file Resources.php */
