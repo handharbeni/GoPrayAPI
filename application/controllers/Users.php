@@ -629,10 +629,11 @@ class Users extends REST_Controller {
 								}
 								else
 								{
+									$this->db->where('key' , $accessToken);
 									$query = $this->db->get('m_akun');
-
+									// echo $query->row()->id;
 									$data = array(
-											'id_user' => $query->result()[0]->id,
+											'id_user' => $query->row()->id,
 											'id_aktivitas' => $id_aktivitas,
 											'id_ibadah' => $id_ibadah,
 											'tempat' => $tempat,
@@ -677,7 +678,7 @@ class Users extends REST_Controller {
 							{
 								$imagedir = FCPATH.'resources/images/';
 								$imagedirtemp = FCPATH.'resources/tempimages/';
-								$images = glob($imagedir . '*.{jpg,jpeg,png,gif}',GLOB_BRACE);
+								$images = glob($imagedir . '*.{jpg,jpeg,png,gif,JPG,JPEG,PNG,GIF,}',GLOB_BRACE);
 								$randomimage = $images[array_rand($images)];
 
 								$text = ( ! $this->post('text')) ? null : substr($this->post('text'),0,50);
@@ -691,14 +692,14 @@ class Users extends REST_Controller {
 								if ( ! $this->post('text') || $text == null)
 								{
 									$result = array(
-											'result' => false,
+											'return' => false,
 											'error_message' => 'Field text tidak boleh kosong!'
 										);
 								}
 								elseif( ! in_array($mime,$mimeAccepted))
 								{
 									$result = array(
-											'result' => false,
+											'return' => false,
 											'error_message' => 'Gambar hanya boleh berekstensi JPG/PNG'
 										);
 								}
