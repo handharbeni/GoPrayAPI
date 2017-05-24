@@ -1,8 +1,6 @@
 # GoPrayAPI
 
-[URL Routing]
-
-[User/Anak]
+[User]
 # GET User detail
 /users/self/?access_token={AT}
 
@@ -47,6 +45,12 @@
 => text
 => gambar (optional)
 
+# POST Setting Profile
+=> access_token
+=> nama
+=> email
+/users/self/profile
+
 [Master]
 # GET Sholat
 /master/sholat?access_token={AT}
@@ -71,12 +75,35 @@
 
 # POST JadwalSholat (Sinkron)
 => method (monthly / yearly)
+/master/jadwalsholat
 
-/master/jadwalstiker
+# POST Paket Stiker
+=> nama_paket
+=> harga
+/master/paketstiker
+
+# POST Stiker [!k]
+=> nama_stiker
+=> cover (gambar)
+=> harga
+/master/stiker
+
+# POST Child Stiker [!k]
+=> kd_stiker
+=> gambar
+=> nomer
+/master/childstiker
 
 [Orang Tua]
 # GET Timeline
 /users/parent/timeline?access_token={AT}
+
+# POST Daftar
+=> kerabat
+=> email
+=> no_hp
+=> password
+/users/parent/daftar
 
 # on Building
 
