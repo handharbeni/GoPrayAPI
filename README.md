@@ -100,6 +100,7 @@
 
 # POST Daftar
 => kerabat
+=> nama
 => email
 => no_hp
 => password
