@@ -1,45 +1,39 @@
 # GoPrayAPI
 
-[URL Routing]
-
-[User/Anak]
+[User]
 # GET User detail
-/v1/users/self/?access_token={AT}
+/users/self/?access_token={AT}
 
 # GET Timeline
-/v1/users/self/timeline?access_token={AT}
+/users/self/timeline?access_token={AT}
 
 # GET Pesan
-/v1/users/self/pesan?access_token={AT}
+/users/self/pesan?access_token={AT}
 
 # GET Kerabat
-/v1/users/self/kerabat?access_token={AT}
+/users/self/kerabat?access_token={AT}
 
 # POST Login
 => email
 => password
-/v1/users/self/login
+/users/self/login
 
 # POST Daftar
 => nama
 => email
 => password
-/v1/users/self/daftar
+/users/self/daftar
 
-# POST Kerabat (INSERT)
+# POST Kerabat
 => access_token
-=> metode ('insert')
-=> kerabat
-=> nama
 => email
-=> gambar
-=> no_hp
+/users/self/kerabat
 
 # POST Timeline
 => access_token
 => id_aktivitas
 => id_ibadah
-=> tepmat
+=> tempat
 => bersama
 => gambar
 => point
@@ -51,27 +45,74 @@
 => text
 => gambar (optional)
 
+# POST Setting Profile
+=> access_token
+=> nama
+=> email
+/users/self/profile
+
+# POST Delete Timeline
+=> id_timeline
+/users/self/deletetimeline
 [Master]
 # GET Sholat
-/v1/master/sholat?access_token={AT}
+/master/sholat?access_token={AT}
 
 # GET Puasa
-/v1/master/puasa?access_token={AT}
+/master/puasa?access_token={AT}
 
 # GET Doa
-/v1/master/doa?access_token={AT}
+/master/doa?access_token={AT}
 
 # GET Aktivitas
-/v1/master/aktivitas?access_token={AT}
+/master/aktivitas?access_token={AT}
 
 # GET Jadwal Sholat
-/v1/master/aktivitas?access_token={AT}&timezone={tz}
+/master/aktivitas?access_token={AT}&timezone={tz}
 
 # GET Stiker
-/v1/master/stiker?access_token={AT}
+/master/stiker?access_token={AT}
 
 # GET Paket Stiker
-/v1/master/paketstiker?access_token={AT}
+/master/paketstiker?access_token={AT}
+
+# POST JadwalSholat (Sinkron)
+=> method (monthly / yearly)
+/master/jadwalsholat
+
+# POST Paket Stiker
+=> nama_paket
+=> harga
+/master/paketstiker
+
+# POST Stiker [!k]
+=> nama_stiker
+=> cover (gambar)
+=> harga
+/master/stiker
+
+# POST Child Stiker [!k]
+=> kd_stiker
+=> gambar
+=> nomer
+/master/childstiker
+
+[Orang Tua]
+# GET Timeline
+/users/parent/timeline?access_token={AT}
+
+# POST Daftar
+=> kerabat
+=> nama
+=> email
+=> no_hp
+=> password
+/users/parent/daftar
+
+# Post Login
+=> email
+=> password
+/users/parent/login
 
 # on Building
 

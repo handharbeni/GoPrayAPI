@@ -17,6 +17,8 @@ class Master extends REST_Controller {
 				'ip_address' => $_SERVER['REMOTE_ADDR'],
 				'requestUri' => $_SERVER['REQUEST_URI']	
 			);
+		
+		$this->keyMuslimSalat = "ffab61dcf338b971ae323f12520497f4";
 	}
 
 	public function index_get($option = '')
@@ -284,6 +286,158 @@ class Master extends REST_Controller {
 						);
 				break;
 			}
+		}
+
+		$this->response($result);
+	}
+
+	public function index_post($option = '')
+	{
+		switch( trimLower($option))
+		{
+			case 'paketstiker':
+				$nama = $this->post('nama_paket');
+				$harga = $this->post('harga');
+				$tanggal = date('Y-m-d');
+				$waktu = date('H:i:s');
+
+				if ( ! $nama || ! $harga)
+				{
+					$result = array(
+							'return' => false,
+							'error_message' => 'Parameter nama dan harga harus diisi.'
+						);
+				}
+				else
+				{
+					$data = array(
+							'name' => $nama,
+							'price' => $harga,
+							'tanggal' => $tanggal,
+							'jam' => $waktu
+						);
+
+					$this->db->insert('m_paket_stiker' , $data);
+
+					$result = array(
+							'return' => true,
+							'message' => 'Paket stiker berhasil ditambahkan.'
+						);
+				}
+			break;
+
+			case 'stiker':
+				$nama = $this->post('nama_stiker');
+				$harga = $this->post('harga');
+				$tanggal = date('Y-m-d');
+				$waktu = date('H:i:s');
+
+				if ( ! $nama || ! $harga)
+				{
+					$result = array(
+							'return' => false,
+							'error_message' => 'Paramater masih ada yang kosong!'
+						);
+				}
+				else
+				{
+					$stikerdir = FCPATH.'resources/stiker/';
+					
+					$fileName = $stikerdir.$_FILES['cover']['name'];
+					$_FILES['cover'] ? move_uploaded_file($_FILES['cover']['tmp_name'], $fileName) : null;
+
+					$path = $_FILES['cover'] ? $_FILES['cover']['name'] : 'default.jpg';
+
+					$data = array(
+							'nama' => $nama,
+							'cover' => base_url("resources/stiker/".$path),
+							'price' => $harga,
+							'tanggal' => $tanggal,
+							'jam' => $waktu
+						);
+
+					$this->db->insert('m_stiker' , $data);
+					
+					$result = array(
+							'return' => true,
+							'message' => 'Stiker berhasil ditambah!'
+						);	
+				}
+			break;
+
+			case 'childstiker':
+				$kd_stiker = $this->post('kd_stiker');
+				$gambar = $_FILES['gambar'];
+				$nomer = $this->post('nomer');
+ 
+				if ( ! isset($gambar) || ! $kd_stiker || ! $nomer)
+				{
+					$result = array(
+							'return' => false,
+							'error_message' => 'Parameter masih ada yang kosong!'
+						);
+				}
+				else
+				{
+					$result = array(
+							'return' => true,
+							'message' => 'Berhasil ditambahkan!'
+						);
+				}
+			break;
+
+			case 'jadwalsholat':
+				$method = $this->post('method');
+
+				$listMethod = array('monthly','yearly');
+
+				if ( ! in_array($method,$listMethod))
+				{
+					$result = array(
+							'return' => false,
+							'error_message' => 'Metode tidak ditemukan!'
+						);
+				}
+				else
+				{
+					$this->load->library('curl');
+
+					$uri = "http://muslimsalat.com";
+					$path = ( $method == 'monthly') ? '/jakarta/monthly.json' : '/jakarta/yearly.json';
+					$path .= "?key=".$this->keyMuslimSalat;
+
+					$dataGet = $this->curl->simple_get($uri.$path);
+
+					$fromResource = json_decode($dataGet);
+
+					foreach($fromResource->items as $row)
+					{
+						$x = $this->db
+						->get_where('t_jadwal_sholat' , array('tanggal' => $row->date_for));
+
+						if ( $x->num_rows() == 0)
+						{
+							$data = array(
+									'id_jadwal' => 1,
+									'tanggal' => $row->date_for,
+									'subuh' => ampm_to_24($row->fajr),
+									'dhuha' => ampm_to_24($row->shurooq),
+									'dhuhur' => ampm_to_24($row->dhuhr),
+									'ashar' => ampm_to_24($row->asr),
+									'maghrib' => ampm_to_24($row->maghrib),
+									'isya' => ampm_to_24($row->isha),
+								);
+
+							$this->db->insert('t_jadwal_sholat' , $data);
+						}
+					}
+
+					$result = array(
+						'return' => true,
+						'status' => 'Sukses Sinkron'
+					);
+				}
+			break;
 		}
 
 		$this->response($result);
