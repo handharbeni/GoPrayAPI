@@ -872,11 +872,12 @@ class Users extends REST_Controller {
 
 						case 'daftar':
 							$kerabat = $this->post('kerabat');
+							$nama = $this->post('nama');
 							$email = $this->post('email');
 							$no_hp = $this->post('no_hp');
 							$password = md5($this->post('password'));
 
-							if ( ! $kerabat || ! $email || ! $no_hp	 || ! $password)
+							if ( ! $kerabat || ! $nama || ! $email || ! $no_hp	 || ! $password)
 							{
 								$result = array(
 										'return' => false,
@@ -908,8 +909,11 @@ class Users extends REST_Controller {
 									}
 									else
 									{
+										$family = $queryFamily->result()[0];
+
 										$data = array(
 												'kerabat' => $kerabat,
+												'nama' => $nama,
 												'email' => $email,
 												'no_hp' => $no_hp,
 												'password' => $password,
@@ -921,6 +925,14 @@ class Users extends REST_Controller {
 											);
 
 										$this->db->insert('m_family' , $data);
+
+										$dataUpdate = array(
+												'id_kerabat' => $family->id
+											);
+
+										$this->db->set($dataUpdate);
+										$this->db->where(array('id_user' => $id_user , 'email' => $family->email));
+										$this->db->update('t_closest_family');
 
 										$result = array(
 												'return' => true,
