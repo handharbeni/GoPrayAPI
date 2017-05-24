@@ -52,7 +52,9 @@
 /users/self/profile
 
 # POST Delete Timeline
+=> access_token
 => id_timeline
+
 /users/self/deletetimeline
 [Master]
 # GET Sholat
@@ -85,13 +87,13 @@
 => harga
 /master/paketstiker
 
-# POST Stiker [!k]
+# POST Stiker
 => nama_stiker
 => cover (gambar)
 => harga
 /master/stiker
 
-# POST Child Stiker [!k]
+# POST Child Stiker
 => kd_stiker
 => gambar
 => nomer
