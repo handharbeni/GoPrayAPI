@@ -675,9 +675,9 @@ class Users extends REST_Controller {
 								$text = ( ! $this->post('text')) ? null : substr($this->post('text'),0,50);
 								$namaGambar = $imagedirtemp.$_FILES['gambar']['name'];
 								$_FILES['gambar'] ? move_uploaded_file($_FILES['gambar']['tmp_name'], $namaGambar) : $randomimage;
-								$gambar = ( ! $_FILES['gambar'] ) ? $randomimage : $namaGambar;
+								$gambar = ( ! isset($_FILES['gambar']) ) ? $randomimage : $namaGambar;
 								// $mime = get_mime_by_extension($gambar);
-								$mime = $_FILES['gambar']['type'];
+								$mime = isset($_FILES['gambar']) ? $_FILES['gambar']['type'] : get_mime_by_extension($gambar);
 								$mimeAccepted = array('image/jpeg' ,'image/png');
 								if ( ! $this->post('text') || $text == null)
 								{
