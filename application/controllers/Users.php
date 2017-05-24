@@ -718,19 +718,20 @@ class Users extends REST_Controller {
 									$box->draw($this->textMeme);
 									/* Create meme */
 									/* GoPray Watermark */
-									$box = new Box($this->gambarMeme);
-									$box->setFontSize(100);
-									$box->setFontFace(FCPATH.'resources/fonts/arial.ttf');
-									$box->setFontColor(new Color(255, 255, 255)); 
-									$box->setBox(
-									    -60,
-									    -60,
-									    imagesx($this->gambarMeme),
-									    imagesy($this->gambarMeme)
-									);
-									$box->setTextAlign('right','bottom');
-									$box->draw('GoPray');
+									// $box = new Box($this->gambarMeme);
+									// $box->setFontSize(100);
+									// $box->setFontFace(FCPATH.'resources/fonts/arial.ttf');
+									// $box->setFontColor(new Color(255, 255, 255)); 
+									// $box->setBox(
+									//     -60,
+									//     -60,
+									//     imagesx($this->gambarMeme),
+									//     imagesy($this->gambarMeme)
+									// );
+									// $box->setTextAlign('right','bottom');
+									// $box->draw('GoPray');
 									/* GoPray Watermark */
+									
 									$upload_dir = FCPATH.'resources/';
 									if ( ! is_dir($upload_dir.'uploads'))
 									{
