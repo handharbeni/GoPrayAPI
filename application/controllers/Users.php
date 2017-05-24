@@ -891,7 +891,8 @@ class Users extends REST_Controller {
 								if ( $cekClosestFamily->num_rows() == 0)
 								{
 									$result = array(
-											'return' => false
+											'return' => false,
+											'error_message' => 'Email belum terdaftar'
 										);
 								}
 								else
@@ -909,8 +910,6 @@ class Users extends REST_Controller {
 									}
 									else
 									{
-										$family = $queryFamily->result()[0];
-
 										$data = array(
 												'kerabat' => $kerabat,
 												'nama' => $nama,
@@ -926,13 +925,18 @@ class Users extends REST_Controller {
 
 										$this->db->insert('m_family' , $data);
 
+										$queryNewFamily = $this->db->get_where('m_family' , array('email' => $email));
+
 										$dataUpdate = array(
-												'id_kerabat' => $family->id
+												'id_kerabat' => $queryNewFamily->result()[0]->id
+											);
+										
+										$updateWhere = array(
+												'id_user' => $id_user, 
+												'email' => $email
 											);
 
-										$this->db->set($dataUpdate);
-										$this->db->where(array('id_user' => $id_user , 'email' => $family->email));
-										$this->db->update('t_closest_family');
+										$this->db->update('t_closest_family' , $dataUpdate , $updateWhere);
 
 										$result = array(
 												'return' => true,

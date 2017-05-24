@@ -51,6 +51,9 @@
 => email
 /users/self/profile
 
+# POST Delete Timeline
+=> id_timeline
+/users/self/deletetimeline
 [Master]
 # GET Sholat
 /master/sholat?access_token={AT}
@@ -105,6 +108,11 @@
 => no_hp
 => password
 /users/parent/daftar
+
+# Post Login
+=> email
+=> password
+/users/parent/login
 
 # on Building
 
