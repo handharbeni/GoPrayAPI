@@ -774,6 +774,163 @@ class Users extends REST_Controller {
 							}
 						break;
 
+						case 'deletetimeline':
+							$this->db->where('key' , $accessToken);
+
+							$query = $this->db->get('m_akun');
+
+							if ( ! $query->num_rows() > 0)
+							{
+								$result = array(
+										'return' => false,
+										'error_message' => 'Access token salah atau tidak ditemukan!'
+									);
+							}
+							else
+							{
+								$id_timeline = $this->post('id_timeline');
+
+								if ( ! $id_timeline)
+								{
+									$result = array(
+											'return' => false,
+											'error_message' => 'Masih ada field yang kosong!'
+										);
+								}
+								else
+								{
+									$data = array(
+											'id' => $id_timeline,
+											'id_user' => $query->result()[0]->id
+										);
+
+									$this->db->delete('t_timeline' , $data);
+
+									$result = array(
+											'return' => false,
+											'error_message' => 'Data timeline berhasil dihapus'
+										);
+								}
+							}
+						break;
+
+						case 'profile':
+							$this->db->where('key' , $accessToken);
+
+							$query = $this->db->get('m_akun');
+
+							if ( ! $query->num_rows() > 0)
+							{
+								$result = array(
+										'return' => false,
+										'error_message' => 'Access token salah atau tidak ditemukan!'
+									);
+							}
+							else
+							{
+								$dataUser = $query->result()[0];
+
+								$nama = ( $this->post('nama') && ! is_null($this->post('nama'))) 
+								? $this->post('nama') : $dataUser->nama;
+								$email = ( $this->post('email') && ! is_null($this->post('email'))) 
+								? $this->post('email') : $dataUser->email;
+
+								$dataUpdate = array(
+										'nama' => $nama,
+										'email' => $email
+									);
+
+								$this->db->set($dataUpdate);
+								$this->db->where('id' , $dataUser->id);
+								$this->db->update('m_akun');
+
+								$result = array(
+										'return' => true,
+										'message' => 'Data berhasil diupdate!'
+									);
+							}
+						break;
+
+						default:
+							$result = array(
+									'return' => false,
+									'error_message' => 'Metode tidak diperbolehkan!'
+								);
+						break;
+					}
+				}
+			break;
+
+			case 'parent':
+				if ( $action != null)
+				{
+					switch( trimLower($action))
+					{
+						case 'login':
+
+						break;
+
+						case 'daftar':
+							$kerabat = $this->post('kerabat');
+							$email = $this->post('email');
+							$no_hp = $this->post('no_hp');
+							$password = md5($this->post('password'));
+
+							if ( ! $kerabat || ! $email || ! $no_hp	 || ! $password)
+							{
+								$result = array(
+										'return' => false,
+										'error_message' => 'Masih ada parameter yang kosong!'
+									);
+							}
+							else
+							{
+								$cekClosestFamily = $this->db->get_where('t_closest_family' , array('email' => $email));
+
+								if ( $cekClosestFamily->num_rows() == 0)
+								{
+									$result = array(
+											'return' => false
+										);
+								}
+								else
+								{
+									$id_user = $cekClosestFamily->result()[0]->id_user;
+
+									$queryFamily = $this->db->get_where('m_family' , array('email' => $email));
+
+									if ( $queryFamily->num_rows() > 0)
+									{
+										$result = array(
+												'return' => false,
+												'error_message' => 'Akun sudah terdaftar'
+											);
+									}
+									else
+									{
+										$data = array(
+												'kerabat' => $kerabat,
+												'email' => $email,
+												'no_hp' => $no_hp,
+												'password' => $password,
+												'key' => generate_key(),
+												'gambar' => null,
+												'tanggal' => date('Y-m-d'),
+												'jam' => date('H:i:s'),
+												'child' => $id_user
+											);
+
+										$this->db->insert('m_family' , $data);
+
+										$result = array(
+												'return' => true,
+												'message' => 'Akun berhasil ditambahkan'
+											);
+									}
+								}
+							}
+						break;
+
 						default:
 							$result = array(
 									'return' => false,

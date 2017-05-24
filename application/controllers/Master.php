@@ -17,7 +17,7 @@ class Master extends REST_Controller {
 				'ip_address' => $_SERVER['REMOTE_ADDR'],
 				'requestUri' => $_SERVER['REQUEST_URI']	
 			);
-
+		
 		$this->keyMuslimSalat = "ffab61dcf338b971ae323f12520497f4";
 	}
 
@@ -295,6 +295,97 @@ class Master extends REST_Controller {
 	{
 		switch( trimLower($option))
 		{
+			case 'paketstiker':
+				$nama = $this->post('nama_paket');
+				$harga = $this->post('harga');
+				$tanggal = date('Y-m-d');
+				$waktu = date('H:i:s');
+
+				if ( ! $nama || ! $harga)
+				{
+					$result = array(
+							'return' => false,
+							'error_message' => 'Parameter nama dan harga harus diisi.'
+						);
+				}
+				else
+				{
+					$data = array(
+							'name' => $nama,
+							'price' => $harga,
+							'tanggal' => $tanggal,
+							'jam' => $waktu
+						);
+
+					$this->db->insert('m_paket_stiker' , $data);
+
+					$result = array(
+							'return' => true,
+							'message' => 'Paket stiker berhasil ditambahkan.'
+						);
+				}
+			break;
+
+			case 'stiker':
+				$nama = $this->post('nama_stiker');
+				$harga = $this->post('harga');
+				$tanggal = date('Y-m-d');
+				$waktu = date('H:i:s');
+
+				if ( ! $nama || ! $harga)
+				{
+					$result = array(
+							'return' => false,
+							'error_message' => 'Paramater masih ada yang kosong!'
+						);
+				}
+				else
+				{
+					$stikerdir = FCPATH.'resources/stiker/';
+					
+					$fileName = $stikerdir.$_FILES['cover']['name'];
+					$_FILES['cover'] ? move_uploaded_file($_FILES['cover']['tmp_name'], $fileName) : null;
+
+					$path = $_FILES['cover'] ? $_FILES['cover']['name'] : 'default.jpg';
+
+					$data = array(
+							'nama' => $nama,
+							'cover' => base_url("resources/stiker/".$path),
+							'price' => $harga,
+							'tanggal' => $tanggal,
+							'jam' => $waktu
+						);
+
+					$this->db->insert('m_stiker' , $data);
+					
+					$result = array(
+							'return' => true,
+							'message' => 'Stiker berhasil ditambah!'
+						);	
+				}
+			break;
+
+			case 'childstiker':
+				$kd_stiker = $this->post('kd_stiker');
+				$gambar = $_FILES['gambar'];
+				$nomer = $this->post('nomer');
+ 
+				if ( ! isset($gambar) || ! $kd_stiker || ! $nomer)
+				{
+					$result = array(
+							'return' => false,
+							'error_message' => 'Parameter masih ada yang kosong!'
+						);
+				}
+				else
+				{
+					$result = array(
+							'return' => true,
+							'message' => 'Berhasil ditambahkan!'
+						);
+				}
+			break;
+
 			case 'jadwalsholat':
 				$method = $this->post('method');
 
