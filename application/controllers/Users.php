@@ -867,7 +867,36 @@ class Users extends REST_Controller {
 					switch( trimLower($action))
 					{
 						case 'login':
+							$email = $this->post('email');
+							$password = $this->post('password');
 
+							if ( ! $email || ! $password)
+							{
+								$result = array(
+										'return' => false,
+										'error_message' => 'Masih ada field yang kosong!'
+									);
+							}
+							else
+							{
+								$query = $this->db
+								->get_where('m_family' , array('email' => $email , 'password' => md5($password)));
+
+								if ( $query->num_rows() == 0)
+								{
+									$result = array(
+											'return' => false,
+											'error_message' => 'Email atau password salah!'
+										);
+								}
+								else
+								{
+									$result = array(
+											'return' => true,
+											'message' => 'Berhasil login'
+										);
+								}
+							}
 						break;
 
 						case 'daftar':
