@@ -47,8 +47,14 @@
 
 # POST Setting Profile
 => access_token
-=> nama
-=> email
+=> method
+(method == 1)
+=> nama (optional)
+=> email (optional)
+(method == 2)
+=> gambar
+(method == 3)
+=> password
 /users/self/profile
 
 # POST Delete Timeline
@@ -56,6 +62,7 @@
 => id_timeline
 
 /users/self/deletetimeline
+
 [Master]
 # GET Sholat
 /master/sholat?access_token={AT}
