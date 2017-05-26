@@ -808,7 +808,7 @@ class Users extends REST_Controller {
 									$this->db->delete('t_timeline' , $data);
 
 									$result = array(
-											'return' => false,
+											'return' => true,
 											'error_message' => 'Data timeline berhasil dihapus'
 										);
 								}
@@ -894,7 +894,8 @@ class Users extends REST_Controller {
 								{
 									$result = array(
 											'return' => true,
-											'message' => 'Berhasil login'
+											'message' => 'Berhasil login',
+											'access_token' => $query->row()->key
 										);
 								}
 							}
