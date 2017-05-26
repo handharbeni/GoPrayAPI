@@ -699,7 +699,7 @@ class Users extends REST_Controller {
 									$this->gambarMeme = ($mime == 'image/png') ? imagecreatefrompng($gambar) : imagecreatefromjpeg($gambar);
 									/* Create meme */
 									$box = new Box($this->gambarMeme);
-									$box->setFontSize(100);
+									$box->setFontSize(40);
 									$box->setFontFace(FCPATH.'resources/fonts/arial.ttf');
 									$box->setFontColor(new Color(255, 255, 255));
 									$box->setTextShadow(
@@ -717,6 +717,12 @@ class Users extends REST_Controller {
 									$box->setTextAlign('center', 'center');
 									$box->draw($this->textMeme);
 									/* Create meme */
+
+									// $direktori, $namaBaru, $watermark, $name
+									/* Watermark Image */
+
+									/* Watermark Image*/
+
 									/* GoPray Watermark */
 									// $box = new Box($this->gambarMeme);
 									// $box->setFontSize(100);
@@ -805,12 +811,26 @@ class Users extends REST_Controller {
 											'id_user' => $query->result()[0]->id
 										);
 
-									$this->db->delete('t_timeline' , $data);
+									$checkDataTimeline = $this->db
+									->get_where('t_timeline' , $data);
 
-									$result = array(
-											'return' => false,
-											'error_message' => 'Data timeline berhasil dihapus'
-										);
+
+									if ( $checkDataTimeline->num_rows() == 0)
+									{
+										$result = array(
+												'return' => false,
+												'error_message' => 'Data tidak ditemukan atau sudah dihapus!'
+											);
+									}
+									else
+									{
+										$this->db->delete('t_timeline' , $data);
+
+										$result = array(
+												'return' => true,
+												'message' => 'Data timeline berhasil dihapus'
+											);
+									}
 								}
 							}
 						break;
@@ -831,24 +851,122 @@ class Users extends REST_Controller {
 							{
 								$dataUser = $query->result()[0];
 
-								$nama = ( $this->post('nama') && ! is_null($this->post('nama'))) 
-								? $this->post('nama') : $dataUser->nama;
-								$email = ( $this->post('email') && ! is_null($this->post('email'))) 
-								? $this->post('email') : $dataUser->email;
+								$method = $this->post('method');
 
-								$dataUpdate = array(
-										'nama' => $nama,
-										'email' => $email
+								$listMethod = array(
+										1 => 'Detail Profile',
+										2 => 'Picture Only',
+										3 => 'Password Only'
 									);
 
-								$this->db->set($dataUpdate);
-								$this->db->where('id' , $dataUser->id);
-								$this->db->update('m_akun');
+								if ( ! array_key_exists($method, $listMethod))
+								{
+									$result = array(
+											'return' => false,
+											'error_message' => 'Metode salah atau tidak ditemukan!'
+										);
+								}
+								else
+								{
+									switch($method)
+									{
+										// Detail Profile
+										case 1:
+											$nama = ( $this->post('nama') && ! is_null($this->post('nama'))) 
+											? $this->post('nama') : $dataUser->nama;
+											$email = ( $this->post('email') && ! is_null($this->post('email'))) 
+											? $this->post('email') : $dataUser->email;
 
-								$result = array(
-										'return' => true,
-										'message' => 'Data berhasil diupdate!'
-									);
+											$dataUpdate = array(
+													'nama' => $nama,
+													'email' => $email
+												);
+
+											$this->db->set($dataUpdate);
+											$this->db->where('id' , $dataUser->id);
+											$this->db->update('m_akun');
+											
+											$result = array(
+													'return' => true,
+													'message' => 'Data berhasil diubah!'
+												);
+										break;
+
+										// Picture Only
+										case 2:
+											if ( ! $_FILES['gambar'])
+											{
+												$result = array(
+														'return' => false,
+														'error_message' => 'Parameter masih ada yang kosong!'
+													);
+											}
+											else
+											{
+												$mime = isset($_FILES['gambar']) ? $_FILES['gambar']['type'] : get_mime_by_extension($gambar);
+
+												$mimeAccepted = array('image/png' , 'image/jpeg');
+
+												if ( ! in_array($mime, $mimeAccepted))
+												{
+													$result = array(
+															'return' => false,
+															'error_message' => 'File gambar hanya boleh berekstensi JPG/PNG'
+														);
+												}
+												else
+												{
+													$x = explode("." , $_FILES['gambar']['name']);
+													$image_result = generate_image($_FILES['gambar']['name']).'.'.end($x);
+
+													isset($image_result) ? 
+													move_uploaded_file($_FILES['gambar']['tmp_name'], FCPATH.'resources/uploads/'.$image_result) : null;
+
+													$dataUpdate = array(
+															'profile_picture' 
+															=> base_url('resources/uploads/'.$image_result)
+														);
+
+													$this->db->set($dataUpdate);
+													$this->db->where('id' , $dataUser->id);
+													$this->db->update('m_akun');
+
+													$result = array(
+															'return' => true,
+															'message' => 'Foto profil berhasil diubah',
+														);
+												}
+											}
+										break;
+
+										// Password Only
+										case 3:
+											if ( ! $this->post('password'))
+											{
+												$result = array(
+														'return' => false,
+														'error_message' => 'Parameter masih ada yang kosong!'
+													);
+											}
+											else
+											{
+												$dataUpdate = array(
+															'password' 
+															=> md5($this->post('password'))
+														);
+
+												$this->db->set($dataUpdate);
+												$this->db->where('id' , $dataUser->id);
+												$this->db->update('m_akun');
+
+												$result = array(
+														'return' => true,
+														'message' => 'Data password berhasil dirubah'
+													);
+											}
+										break;
+									}
+								}
 							}
 						break;
 
