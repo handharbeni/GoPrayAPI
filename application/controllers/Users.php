@@ -851,6 +851,10 @@ class Users extends REST_Controller {
 									$checkDataTimeline = $this->db
 									->get_where('t_timeline' , $data);
 
+									$result = array(
+											'return' => true,
+											'error_message' => 'Data timeline berhasil dihapus'
+										);
 
 									if ( $checkDataTimeline->num_rows() == 0)
 									{
@@ -1049,7 +1053,8 @@ class Users extends REST_Controller {
 								{
 									$result = array(
 											'return' => true,
-											'message' => 'Berhasil login'
+											'message' => 'Berhasil login',
+											'access_token' => $query->row()->key
 										);
 								}
 							}
