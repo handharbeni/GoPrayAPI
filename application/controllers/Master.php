@@ -332,7 +332,7 @@ class Master extends REST_Controller {
 				$tanggal = date('Y-m-d');
 				$waktu = date('H:i:s');
 
-				if ( ! $nama || ! $harga)
+				if ( ! $nama || ! $harga || ! $_FILES['cover'])
 				{
 					$result = array(
 							'return' => false,
@@ -342,11 +342,14 @@ class Master extends REST_Controller {
 				else
 				{
 					$stikerdir = FCPATH.'resources/stiker/';
-					
-					$fileName = $stikerdir.$_FILES['cover']['name'];
+					$x = explode("." , $_FILES['cover']['name']);
+
+					$fileEncrypt = generate_image($_FILES['cover']['name']);
+
+					$fileName = $stikerdir.$fileEncrypt.'.'.end($x);
 					$_FILES['cover'] ? move_uploaded_file($_FILES['cover']['tmp_name'], $fileName) : null;
 
-					$path = $_FILES['cover'] ? $_FILES['cover']['name'] : 'default.jpg';
+					$path = $_FILES['cover'] ? $fileEncrypt.'.'.end($x) : 'default.jpg';
 
 					$data = array(
 							'nama' => $nama,
@@ -370,7 +373,7 @@ class Master extends REST_Controller {
 				$gambar = $_FILES['gambar'];
 				$nomer = $this->post('nomer');
  
-				if ( ! isset($gambar) || ! $kd_stiker || ! $nomer)
+				if ( ! $gambar || ! $kd_stiker || ! $nomer)
 				{
 					$result = array(
 							'return' => false,
@@ -379,6 +382,27 @@ class Master extends REST_Controller {
 				}
 				else
 				{
+					$stikerdir = FCPATH.'resources/stiker/';
+
+					$x = explode("." , $_FILES['gambar']['name']);
+
+					$fileEncrypt = generate_image($_FILES['gambar']['name']);
+
+					$fileName = $stikerdir.$fileEncrypt.'.'.end($x);
+					$_FILES['gambar'] ? move_uploaded_file($_FILES['gambar']['tmp_name'], $fileName) : null;
+
+					$path = $_FILES['gambar'] ? $fileEncrypt.'.'.end($x) : 'default.jpg';
+
+					$data = array(
+							'kd_stiker' => $kd_stiker,
+							'stiker' => base_url("resources/stiker/".$path),
+							'nomer' => $nomer,
+							'tanggal' => date('Y-m-d'),
+							'jam' => date('H:i:s')
+						);
+
+					$this->db->insert('t_stiker' , $data);
+
 					$result = array(
 							'return' => true,
 							'message' => 'Berhasil ditambahkan!'
