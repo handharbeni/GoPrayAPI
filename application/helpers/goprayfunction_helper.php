@@ -294,3 +294,25 @@ if ( ! function_exists('ampm_to_24'))
 		return $output;
 	}
 }
+
+if ( ! function_exists('textToCenter'))
+{
+	function textToCenter($image, $text, $font, $size) {
+
+	    $xi = ImageSX($image);
+	    $yi = ImageSY($image);
+
+	    $box = ImageTTFBBox($size, $angle, $font, $text);
+
+	    $xr = abs(max($box[2], $box[4]));
+	    $yr = abs(max($box[5], $box[7]));
+
+	    $x = intval(($xi - $xr) / 2);
+	    $y = intval(($yi + $yr) / 2);
+
+	    return array($x, $y);
+	}
+}
+
+/* End of file goprayfunction_helper.php */
+/* Location: ./application/helpers/goprayfunction_helper.php */
