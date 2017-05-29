@@ -165,7 +165,7 @@ class Users extends REST_Controller {
 									}
 									$results[] = array(
 											'id_timeline' =>$data->id_timeline,
-											'id_user' =>$data->id_user,
+											'id_user' => $data->id_user,
 											'id_aktivitas' => $data->id_aktivitas,
 											'id_ibadah' => $data->id_ibadah,
 											'nama_aktivitas' => $data->nama_ibadah,
@@ -306,8 +306,31 @@ class Users extends REST_Controller {
 								$temp = array();
 
 								foreach($hsl as $row)
-								{									
-									array_push($temp, $row);
+								{
+									$query = $this->db->get_where('m_akun',
+										array('id' => $row->id_user))->result();
+
+									$data = array(
+											'id_timeline' => $row->id_timeline,
+											'id' => $row->id,
+											'id_user' => $row->id_user,
+											'nama_user' => $query[0]->nama,
+											'id_aktivitas' => $row->id_aktivitas,
+											'id_ibadah' => $row->id_ibadah,
+											'tempat' => $row->tempat,
+											'bersama' => $row->bersama,
+											'nominal' => $row->nominal,
+											'image' => $row->image,
+											'point' => $row->point,
+											'tanggal' => $row->tanggal,
+											'jam' => $row->jam,
+											'nama' => $row->nama,
+											'prefix_table' => $row->prefix_table,
+											'nama_ibadah' => $row->nama_ibadah,
+											'tgl' => $row->tgl,
+										);
+
+									array_push($temp, $data);
 								}
 								
 								array_merge($temp);
@@ -695,88 +718,102 @@ class Users extends REST_Controller {
 								}
 								else
 								{
-									$this->textMeme = $text;
+									list($owidth, $oheight) = getimagesize($randomimage);
+									$this->textMeme = substr($text, 0,50);
 									$this->gambarMeme = ($mime == 'image/png') ? imagecreatefrompng($gambar) : imagecreatefromjpeg($gambar);
-									/* Create meme */
-									$box = new Box($this->gambarMeme);
-									$box->setFontSize(40);
-									$box->setFontFace(FCPATH.'resources/fonts/arial.ttf');
-									$box->setFontColor(new Color(255, 255, 255));
-									$box->setTextShadow(
-									    new Color(0, 0, 0, 80),
-									    0,
-									    -1
-									);
-									$box->setBox(
-									    0,
-									    0,
-									    imagesx($this->gambarMeme),
-									    imagesy($this->gambarMeme)
-									);
-									// $box->setBackgroundColor(new Color(0,0,0,80));
-									$box->setTextAlign('center', 'center');
-									$box->draw($this->textMeme);
-									/* Create meme */
+									$this->watermarkImage = FCPATH.'resources/logo.png';
+									$this->fontSize = 40;//40/100 * $owidth;
+									$this->fontPath = FCPATH.'resources/fonts/arial.ttf';
 
-									// $direktori, $namaBaru, $watermark, $name
-									/* Watermark Image */
+									$width = $owidth;
+									$height = $oheight;
 
-									/* Watermark Image*/
+									$im = imagecreatetruecolor($width, $height);
+									$bgcolor = imagecolorallocate($im, 255, 255, 255);
+                					imagefill($im, 0, 0, $bgcolor);								
 
-									/* GoPray Watermark */
-									// $box = new Box($this->gambarMeme);
-									// $box->setFontSize(100);
-									// $box->setFontFace(FCPATH.'resources/fonts/arial.ttf');
-									// $box->setFontColor(new Color(255, 255, 255)); 
-									// $box->setBox(
-									//     -60,
-									//     -60,
-									//     imagesx($this->gambarMeme),
-									//     imagesy($this->gambarMeme)
-									// );
-									// $box->setTextAlign('right','bottom');
-									// $box->draw('GoPray');
-									/* GoPray Watermark */
-									
-									$upload_dir = FCPATH.'resources/';
-									if ( ! is_dir($upload_dir.'uploads'))
-									{
-										mkdir(FCPATH.'resources/uploads/');
-										@chmod ( FCPATH.'resources/uploads/' , 0777);
-									}
-									$filenameUpload = $upload_dir.'uploads/'.generate_image($this->gambarMeme).'.png';
-									imagepng($this->gambarMeme, $filenameUpload, 9);
-									// imagedestroy($this->gambarMeme);
-									/* image filename */
-									$x = explode('/' , $filenameUpload);
-									$count = count($x) - 1;
-									/* image filename */
-									$data = array(
-											'id_user' => $akun->result()[0]->id,
-											'path_meme' => base_url("resources/uploads/".$x[$count]),
-											// 'path_meme' => $filenameUpload,
-											'tanggal' => date('Y-m-d'),
-											'jam' => date('H:i:s')
-										);
-									if ( $this->db->insert('t_meme' , $data))
-									{
-										$status = 'Meme berhasil dibuat!';
-									}
-									else
-									{
-										$status = 'Meme gagal dibuat!';
-									}
-									$query = $this->db
-									->select( array('id','path_meme','tanggal','jam'))
-									->from('t_meme')
-									->where( array('id_user' => $akun->result()[0]->id))
-									->order_by('id DESC','jam DESC')
-									->get();
+                					$info = getimagesize($randomimage);
+                					if ($info['mime'] == 'image/jpeg') {
+					                    $image = imagecreatefromjpeg($randomimage);
+					                    $ext = '.jpg';
+					                } elseif ($info['mime'] == 'image/png') {
+					                    $image = imagecreatefrompng($randomimage);
+					                    $ext = '.png';
+					                }
+
+					                imagecopyresampled($im, $image, 0, 0, 0, 0, 512, $height, $owidth, $oheight);
+
+					                /* Watermark Text */
+					                // $center1 = (imagesx($image) / 2) - (($bbox[2] - $bbox[0]) / 2);
+					                $white = imagecolorallocate($im, 255, 255, 255);
+								    $shadow = imagecolorallocate($im, 178, 178, 178); 
+
+								    // imagettftext($im, $this->fontSize, 0, $owidth/2, $oheight/2, $shadow, $this->fontPath, $this->textMeme);
+								    imagettftext($im, $this->fontSize, 0, $oheight/2, $owidth/2 , $white, $this->fontPath, $this->textMeme);
+					                /* Watermark Text */
+
+					                /* Watermark Image */
+					                $watermarkImage = imagecreatefrompng($this->watermarkImage);
+
+					                list($w_width, $w_height) = getimagesize($this->watermarkImage);
+					                $pos_x = $width - $w_width;
+					                $pos_y = $height - $w_height;
+
+					                imagecopy($im, $watermarkImage , $pos_x, $pos_y, 0 , 0, $w_width, $w_height);
+
+					                /* Watermark Image */
+					                if (imagepng($im, FCPATH.'resources/uploads/' .generate_image($randomimage) . '.png.', 9)) {
+					                    $statuss = true;
+					                } else {
+					                    $statuss = false;
+					                }
+
+
 									$result = array(
 											'return' => true,
-											'status' => $status,
-											'data_meme' => $query->result()
+											'test' => $randomimage,
+											'x' => $owidth,
+											'y' => $oheight,
+											'st' => $statuss,
 										);
+
+									// test
+									// $query = $this->db
+									// ->select( array('id','path_meme','tanggal','jam'))
+									// ->from('t_meme')
+									// ->where( array('id_user' => $akun->result()[0]->id))
+									// ->order_by('id DESC','jam DESC')
+									// ->get();
+
+									// $upload_dir = FCPATH.'resources/';
+									// if ( ! is_dir($upload_dir.'uploads'))
+									// {
+									// 	mkdir(FCPATH.'resources/uploads/');
+									// 	@chmod ( FCPATH.'resources/uploads/' , 0777);
+									// }
+									// $filenameUpload = $upload_dir.'uploads/'.generate_image($this->gambarMeme).'.png';
+									// imagepng($this->gambarMeme, $filenameUpload, 9);
+									// // imagedestroy($this->gambarMeme);
+									// /* image filename */
+									// $x = explode('/' , $filenameUpload);
+									// $count = count($x) - 1;
+									// /* image filename */
+									// $data = array(
+									// 		'id_user' => $akun->result()[0]->id,
+									// 		'path_meme' => base_url("resources/uploads/".$x[$count]),
+									// 		// 'path_meme' => $filenameUpload,
+									// 		'tanggal' => date('Y-m-d'),
+									// 		'jam' => date('H:i:s')
+									// 	);
+									// if ( $this->db->insert('t_meme' , $data))
+									// {
+									// 	$status = 'Meme berhasil dibuat!';
+									// }
+									// else
+									// {
+									// 	$status = 'Meme gagal dibuat!';
+									// }
+
 								}
 							}
 						break;
