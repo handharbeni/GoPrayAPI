@@ -315,6 +315,7 @@ class Users extends REST_Controller {
 											'id' => $row->id,
 											'id_user' => $row->id_user,
 											'nama_user' => $query[0]->nama,
+											'foto_user' => $query[0]->profile_picture,
 											'id_aktivitas' => $row->id_aktivitas,
 											'id_ibadah' => $row->id_ibadah,
 											'tempat' => $row->tempat,
@@ -344,17 +345,59 @@ class Users extends REST_Controller {
 
 						default:
 							$result = array(
-									'return' => false,
-									'error_message' => 'Parameter tidak ditemukan'
-								);
+								'return' => false,
+								'error_message' => 'Parameter tidak ditemukan'
+							);
 						break;
 					}
 				}else
-				{
-					$result = array(
-							'return' => false,
-							'error_message' => 'Parameter tidak ditemukan'
-						);
+				{		
+					if ( ! $accessToken)
+					{
+						$result = array(
+								'return' => false,
+								'error_message' => 'Parameter tidak ditemukan'
+							);
+					}
+					else
+					{
+						$this->db->where('key' , $accessToken);
+						if ( ! $this->db->get('m_family')->num_rows() > 0)
+						{
+							$result = array(
+									'return' => false,
+									'error_message' => 'Access token salah atau tidak ditemukan!'
+								);
+						}
+						else
+						{
+							$this->db->where('key' , $accessToken);
+
+							$query = $this->db->get('m_family');
+							$data = array();
+
+							foreach($query->result() as $row)
+							{
+								$anak = $this->db->get_where('t_closest_family' ,
+									array('id_kerabat' => $row->id , 'email' => $row->email));
+
+								$data[] = array(
+										'kerabat' => $row->kerabat,
+										'nama' => $row->nama,
+										'email' => $row->email,
+										'no_hp' => $row->no_hp,
+										'profile_picture' => ( $row->gambar == null) ? 'null' : $row->profile_picture,
+										'tanggal' => $row->tanggal,
+										'anak' => $anak->result(),
+									);
+							}
+
+							$result = array(
+									'return' => true,
+									'data' => $data
+								);
+						}
+					}
 				}
 			break;
 
@@ -587,7 +630,9 @@ class Users extends REST_Controller {
 								else
 								{
 									$checkKerabat = $this->db
-									->get_where('t_closest_family' , array('email' => $email));
+									->get_where('t_closest_family' , array(
+										'email' => $email , 
+										'id_user' => $query->result()[0]->id));
 
 									if ( $checkKerabat->num_rows() > 0)
 									{
@@ -598,18 +643,48 @@ class Users extends REST_Controller {
 									}
 									else
 									{
-										$data = array(
-												'id_user' => $query->result()[0]->id,
-												'id_kerabat' => 0,
-												'email' => $email
-											);
+										$queryKerabat = $this->db->get_where('m_family' , array('email' => $email));
 
-										$this->db->insert('t_closest_family' , $data);
+										if ( $queryKerabat->num_rows() > 0)
+										{
+											$child = $queryKerabat->result()[0]->child;
 
-										$result = array(
-												'return' => true,
-												'message' => 'Kerabat berhasil ditambahkan.'
-											);
+											$data = array(
+													'id_user' => $query->result()[0]->id,
+													'id_kerabat' => $queryKerabat->result()[0]->id,
+													'email' => $email
+												);
+
+											$updateChild = array(
+													'child' => $child.','.$query->result()[0]->id
+												);
+
+											$this->db->insert('t_closest_family' , $data);
+
+											$this->db->set($updateChild);
+											$this->db->where('id' , $queryKerabat->result()[0]->id);
+											$this->db->update('m_family');
+
+											$result = array(
+													'return' => true,
+													'message' => 'Kerabat berhasil ditambahkan.'
+												);
+										}
+										else
+										{
+											$data = array(
+													'id_user' => $query->result()[0]->id,
+													'id_kerabat' => 0,
+													'email' => $email
+												);
+
+											$this->db->insert('t_closest_family' , $data);
+
+											$result = array(
+													'return' => true,
+													'message' => 'Kerabat berhasil ditambahkan.'
+												);
+										}
 									}
 								}
 							}
@@ -699,7 +774,6 @@ class Users extends REST_Controller {
 								$namaGambar = $imagedirtemp.$_FILES['gambar']['name'];
 								$_FILES['gambar'] ? move_uploaded_file($_FILES['gambar']['tmp_name'], $namaGambar) : $randomimage;
 								$gambar = ( ! isset($_FILES['gambar']) ) ? $randomimage : $namaGambar;
-								// $mime = get_mime_by_extension($gambar);
 								$mime = isset($_FILES['gambar']) ? $_FILES['gambar']['type'] : get_mime_by_extension($gambar);
 								$mimeAccepted = array('image/jpeg' ,'image/png');
 								if ( ! $this->post('text') || $text == null)
@@ -718,38 +792,38 @@ class Users extends REST_Controller {
 								}
 								else
 								{
-									list($owidth, $oheight) = getimagesize($randomimage);
+									list($owidth, $oheight) = getimagesize($gambar);
 									$this->textMeme = substr($text, 0,50);
-									$this->gambarMeme = ($mime == 'image/png') ? imagecreatefrompng($gambar) : imagecreatefromjpeg($gambar);
 									$this->watermarkImage = FCPATH.'resources/logo.png';
-									$this->fontSize = 40;//40/100 * $owidth;
-									$this->fontPath = FCPATH.'resources/fonts/arial.ttf';
+									$this->fontSize = 13;
+									$this->fontPath = FCPATH.'resources/fonts/Helvetica.ttf';
 
-									$width = $owidth;
-									$height = $oheight;
+									$width = 512;
+									$height = $_FILES['gambar'] ? 512 : $oheight;
 
 									$im = imagecreatetruecolor($width, $height);
 									$bgcolor = imagecolorallocate($im, 255, 255, 255);
                 					imagefill($im, 0, 0, $bgcolor);								
 
-                					$info = getimagesize($randomimage);
+                					$info = getimagesize($gambar);
                 					if ($info['mime'] == 'image/jpeg') {
-					                    $image = imagecreatefromjpeg($randomimage);
+					                    $image = imagecreatefromjpeg($gambar);
 					                    $ext = '.jpg';
 					                } elseif ($info['mime'] == 'image/png') {
-					                    $image = imagecreatefrompng($randomimage);
+					                    $image = imagecreatefrompng($gambar);
 					                    $ext = '.png';
 					                }
 
-					                imagecopyresampled($im, $image, 0, 0, 0, 0, 512, $height, $owidth, $oheight);
+					                imagecopyresampled($im, $image, 0, 0, 0, 0, $width , $height,  $owidth , $oheight);
 
 					                /* Watermark Text */
-					                // $center1 = (imagesx($image) / 2) - (($bbox[2] - $bbox[0]) / 2);
 					                $white = imagecolorallocate($im, 255, 255, 255);
-								    $shadow = imagecolorallocate($im, 178, 178, 178); 
+								    $shadow = imagecolorallocate($im, 178, 178, 178);
 
-								    // imagettftext($im, $this->fontSize, 0, $owidth/2, $oheight/2, $shadow, $this->fontPath, $this->textMeme);
-								    imagettftext($im, $this->fontSize, 0, $oheight/2, $owidth/2 , $white, $this->fontPath, $this->textMeme);
+								    list($x, $y) = textToCenter($im, $this->textMeme, $this->fontPath, $this->fontSize);
+
+								    imagettftext($im, $this->fontSize, 0, $x , $y , $white, $this->fontPath, $this->textMeme);
+
 					                /* Watermark Text */
 
 					                /* Watermark Image */
@@ -762,57 +836,34 @@ class Users extends REST_Controller {
 					                imagecopy($im, $watermarkImage , $pos_x, $pos_y, 0 , 0, $w_width, $w_height);
 
 					                /* Watermark Image */
-					                if (imagepng($im, FCPATH.'resources/uploads/' .generate_image($randomimage) . '.png.', 9)) {
-					                    $statuss = true;
-					                } else {
-					                    $statuss = false;
-					                }
+					                $upload_dir = FCPATH.'resources/';
+									$fileName = $upload_dir.'uploads/' .generate_image($gambar) . '.png';
+					                imagepng($im, $fileName , 9);
 
+									$query = $this->db
+									->select( array('id','path_meme','tanggal','jam'))
+									->from('t_meme')
+									->where( array('id_user' => $akun->result()[0]->id))
+									->order_by('id DESC','jam DESC')
+									->get();
+
+									/* image filename */
+									$x = explode('/' , $fileName);
+									$count = count($x) - 1;
+									/* image filename */
+									$data = array(
+											'id_user' => $akun->result()[0]->id,
+											'path_meme' => base_url("resources/uploads/".$x[$count]),
+											'tanggal' => date('Y-m-d'),
+											'jam' => date('H:i:s')
+										);
+
+									$this->db->insert('t_meme' , $data);
 
 									$result = array(
 											'return' => true,
-											'test' => $randomimage,
-											'x' => $owidth,
-											'y' => $oheight,
-											'st' => $statuss,
+											'status' => 'Meme berhasil dibuat!'
 										);
-
-									// test
-									// $query = $this->db
-									// ->select( array('id','path_meme','tanggal','jam'))
-									// ->from('t_meme')
-									// ->where( array('id_user' => $akun->result()[0]->id))
-									// ->order_by('id DESC','jam DESC')
-									// ->get();
-
-									// $upload_dir = FCPATH.'resources/';
-									// if ( ! is_dir($upload_dir.'uploads'))
-									// {
-									// 	mkdir(FCPATH.'resources/uploads/');
-									// 	@chmod ( FCPATH.'resources/uploads/' , 0777);
-									// }
-									// $filenameUpload = $upload_dir.'uploads/'.generate_image($this->gambarMeme).'.png';
-									// imagepng($this->gambarMeme, $filenameUpload, 9);
-									// // imagedestroy($this->gambarMeme);
-									// /* image filename */
-									// $x = explode('/' , $filenameUpload);
-									// $count = count($x) - 1;
-									// /* image filename */
-									// $data = array(
-									// 		'id_user' => $akun->result()[0]->id,
-									// 		'path_meme' => base_url("resources/uploads/".$x[$count]),
-									// 		// 'path_meme' => $filenameUpload,
-									// 		'tanggal' => date('Y-m-d'),
-									// 		'jam' => date('H:i:s')
-									// 	);
-									// if ( $this->db->insert('t_meme' , $data))
-									// {
-									// 	$status = 'Meme berhasil dibuat!';
-									// }
-									// else
-									// {
-									// 	$status = 'Meme gagal dibuat!';
-									// }
 
 								}
 							}
