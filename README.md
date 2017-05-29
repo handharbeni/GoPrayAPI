@@ -107,6 +107,9 @@
 /master/childstiker
 
 [Orang Tua]
+# GET Parent Detail 
+/users/parent/?access_token={AT}
+
 # GET Timeline
 /users/parent/timeline?access_token={AT}
 
