@@ -302,7 +302,7 @@ if ( ! function_exists('textToCenter'))
 	    $xi = ImageSX($image);
 	    $yi = ImageSY($image);
 
-	    $box = ImageTTFBBox($size, $angle, $font, $text);
+	    $box = ImageTTFBBox($size, 0, $font, $text);
 
 	    $xr = abs(max($box[2], $box[4]));
 	    $yr = abs(max($box[5], $box[7]));

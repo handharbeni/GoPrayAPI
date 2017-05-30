@@ -771,7 +771,7 @@ class Users extends REST_Controller {
 								$images = glob($imagedir . '*.{jpg,jpeg,png,gif,JPG,JPEG,PNG,GIF,}',GLOB_BRACE);
 								$randomimage = $images[array_rand($images)];
 								$text = ( ! $this->post('text')) ? null : substr($this->post('text'),0,50);
-								$namaGambar = $imagedirtemp.$_FILES['gambar']['name'];
+								$namaGambar = isset($_FILES['gambar'])?$imagedirtemp.$_FILES['gambar']['name']:$randomimage;
 								$_FILES['gambar'] ? move_uploaded_file($_FILES['gambar']['tmp_name'], $namaGambar) : $randomimage;
 								$gambar = ( ! isset($_FILES['gambar']) ) ? $randomimage : $namaGambar;
 								$mime = isset($_FILES['gambar']) ? $_FILES['gambar']['type'] : get_mime_by_extension($gambar);
@@ -799,7 +799,7 @@ class Users extends REST_Controller {
 									$this->fontPath = FCPATH.'resources/fonts/Helvetica.ttf';
 
 									$width = 512;
-									$height = $_FILES['gambar'] ? 512 : $oheight;
+									$height = isset($_FILES['gambar']) ? 512 : $oheight;
 
 									$im = imagecreatetruecolor($width, $height);
 									$bgcolor = imagecolorallocate($im, 255, 255, 255);
