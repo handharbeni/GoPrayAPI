@@ -33,17 +33,18 @@
 => access_token
 => id_aktivitas
 => id_ibadah
-=> tempat
-=> bersama
-=> gambar
+=> tempat (optional)
+=> bersama (optional)
+=> nominal (optional)
+=> gambar (optional)
 => point
-=> tanggal
-=> jam
+/users/self/timeline
 
 # POST Meme
 => access_token
 => text
 => gambar (optional)
+/users/self/meme
 
 # POST Setting Profile
 => access_token
