@@ -693,16 +693,9 @@ class Users extends REST_Controller {
 						case 'timeline':
 							$id_aktivitas = $this->post('id_aktivitas');
 							$id_ibadah = $this->post('id_ibadah');
-							$tempat = $this->post('tempat');
-							$bersama = $this->post('bersama');
-							$gambar = $this->post('gambar');
-							$nominal = $this->post('nominal');
 							$point = $this->post('point');
-							$tanggal = $this->post('tanggal');
-							$jam = $this->post('jam');
 
-							if ( ! $accessToken || ! $id_aktivitas || ! $id_ibadah || ! $tempat 
-								|| ! $bersama || ! $gambar || ! $point)
+							if ( ! $accessToken || ! $id_aktivitas || ! $id_ibadah || ! $point)
 							{								
 								$result = array(
 									'return' => false,
@@ -723,32 +716,39 @@ class Users extends REST_Controller {
 								{
 									$this->db->where('key' , $accessToken);
 									$query = $this->db->get('m_akun');
-									// echo $query->row()->id;
+
+									if ( $_FILES['gambar'])
+									{
+										$timelinedir = FCPATH.'resources/uploads/';
+										$fileEncrypt = generate_image($_FILES['gambar']['name']);
+										$x = explode("." , $_FILES['gambar']['name']);
+										$fileName = $timelinedir.$fileEncrypt.'.'.end($x);
+										move_uploaded_file($_FILES['gambar']['tmp_name'], $fileName);
+									}
+
+									$tempat = $this->post('tempat') ? $this->post('tempat') : 'nothing';
+									$bersama = $this->post('bersama') ? $this->post('bersama') : 'nothing';
+									$nominal = $this->post('nominal') ? $this->post('nominal') : 'nothing';
+
 									$data = array(
 											'id_user' => $query->row()->id,
 											'id_aktivitas' => $id_aktivitas,
 											'id_ibadah' => $id_ibadah,
 											'tempat' => $tempat,
 											'bersama' => $bersama,
-											'image' => $gambar,
+											'image' => $_FILES['gambar'] 
+											? base_url('resources/uploads/'.$fileEncrypt.'.'.end($x)) : 'nothing',
 											'nominal' => $nominal,
 											'point' => $point,
-											'tanggal' => $tanggal,
-											'jam' => $jam
+											'tanggal' => date('Y-m-d'),
+											'jam' => date('H:i:s')
 										);
 
-									if ( $this->db->insert('t_timeline' , $data))
-									{
-										$status = 'sukses';
-									}
-									else
-									{
-										$status = 'gagal';
-									}
+									$this->db->insert('t_timeline' , $data);
 
 									$result = array(
 											'return' => true,
-											'status' => $status
+											'status' => 'Timeline berhasil ditambahkan.'
 										);
 								}
 							}
