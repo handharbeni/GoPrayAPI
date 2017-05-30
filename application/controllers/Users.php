@@ -799,7 +799,8 @@ class Users extends REST_Controller {
 									$this->fontPath = FCPATH.'resources/fonts/Helvetica.ttf';
 
 									$width = 512;
-									$height = isset($_FILES['gambar']) ? 512 : $oheight;
+									$getRasio = $owidth>$width?$owidth/$width:$width/$owidth;
+									$height = $owidth>$width?$oheight/$getRasio:$oheight*$getRasio;
 
 									$im = imagecreatetruecolor($width, $height);
 									$bgcolor = imagecolorallocate($im, 255, 255, 255);
