@@ -771,7 +771,7 @@ class Users extends REST_Controller {
 								$images = glob($imagedir . '*.{jpg,jpeg,png,gif,JPG,JPEG,PNG,GIF,}',GLOB_BRACE);
 								$randomimage = $images[array_rand($images)];
 								$text = ( ! $this->post('text')) ? null : substr($this->post('text'),0,50);
-								$namaGambar = $imagedirtemp.$_FILES['gambar']['name'];
+								$namaGambar = isset($_FILES['gambar'])?$imagedirtemp.$_FILES['gambar']['name']:$randomimage;
 								$_FILES['gambar'] ? move_uploaded_file($_FILES['gambar']['tmp_name'], $namaGambar) : $randomimage;
 								$gambar = ( ! isset($_FILES['gambar']) ) ? $randomimage : $namaGambar;
 								$mime = isset($_FILES['gambar']) ? $_FILES['gambar']['type'] : get_mime_by_extension($gambar);
@@ -799,7 +799,8 @@ class Users extends REST_Controller {
 									$this->fontPath = FCPATH.'resources/fonts/Helvetica.ttf';
 
 									$width = 512;
-									$height = $_FILES['gambar'] ? 512 : $oheight;
+									$getRasio = $owidth>$width?$owidth/$width:$width/$owidth;
+									$height = $owidth>$width?$oheight/$getRasio:$oheight*$getRasio;
 
 									$im = imagecreatetruecolor($width, $height);
 									$bgcolor = imagecolorallocate($im, 255, 255, 255);
@@ -865,6 +866,58 @@ class Users extends REST_Controller {
 											'status' => 'Meme berhasil dibuat!'
 										);
 
+								}
+							}
+						break;
+
+						case 'deletememe':
+							$this->db->where('key' , $accessToken);
+
+							$query = $this->db->get('m_akun');
+
+							if ( ! $query->num_rows() > 0)
+							{
+								$result = array(
+										'return' => false,
+										'error_message' => 'Access token salah atau tidak ditemukan!'
+									);
+							}
+							else
+							{
+								$id_meme = $this->post('id_meme');
+
+								if ( ! $id_meme)
+								{
+									$result = array(
+											'return' => false,
+											'error_message' => 'Masih ada field yang kosong'
+										);
+								}
+								else
+								{
+									$data = array(
+											'id' => $id_meme,
+											'id_user' => $query->result()[0]->id
+										);
+
+									$query = $this->db->get_where('t_meme' , $data);
+
+									if ( $query->num_rows() == 0)
+									{
+										$result = array(
+												'return' => false,
+												'error_message' => 'Meme tidak ditemukan'
+											);
+									}
+									else
+									{
+										$this->db->delete('t_meme' , $data);
+
+										$result = array(
+												'return' => true,
+												'message' => 'Meme berhasil dihapus'
+											);
+									}
 								}
 							}
 						break;

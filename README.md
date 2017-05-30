@@ -61,8 +61,12 @@
 # POST Delete Timeline
 => access_token
 => id_timeline
-
 /users/self/deletetimeline
+
+# POST delete meme
+=> access_token
+=> id_meme
+/users/self/deletememe
 
 [Master]
 # GET Sholat
