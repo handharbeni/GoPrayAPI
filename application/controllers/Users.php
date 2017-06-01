@@ -876,7 +876,7 @@ class Users extends REST_Controller {
 											'jam' => date('H:i:s')
 										);
 
-									// $this->db->insert('t_meme' , $data);
+									$this->db->insert('t_meme' , $data);
 
 									$result = array(
 											'return' => true,
