@@ -582,7 +582,6 @@ class Users extends REST_Controller {
 											'email' => $email,
 											'password' => md5($password),
 											'key' => generate_key(),
-											'profile_picture' => null,
 											'tanggal' => date('Y-m-d H:i:s'),
 											'verifikasi' => 'N'
 										);
