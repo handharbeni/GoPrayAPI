@@ -769,7 +769,7 @@ class Users extends REST_Controller {
 								$imagedirtemp = FCPATH.'resources/tempimages/';
 								$images = glob($imagedir . '*.{jpg,jpeg,png,gif,JPG,JPEG,PNG,GIF,}',GLOB_BRACE);
 								$randomimage = $images[array_rand($images)];
-								$text = ( ! $this->post('text')) ? null : substr($this->post('text'),0,50);
+								$text = ( ! $this->post('text')) ? null : substr($this->post('text'),0,100);
 								$namaGambar = isset($_FILES['gambar'])?$imagedirtemp.$_FILES['gambar']['name']:$randomimage;
 								$_FILES['gambar'] ? move_uploaded_file($_FILES['gambar']['tmp_name'], $namaGambar) : $randomimage;
 								$gambar = ( ! isset($_FILES['gambar']) ) ? $randomimage : $namaGambar;
@@ -792,7 +792,7 @@ class Users extends REST_Controller {
 								else
 								{
 									list($owidth, $oheight) = getimagesize($gambar);
-									$this->textMeme = substr($text, 0,50);
+									$this->textMeme = $text;
 									$this->watermarkImage = FCPATH.'resources/logo.png';
 									$this->fontSize = 13;
 									$this->fontPath = FCPATH.'resources/fonts/Helvetica.ttf';
@@ -816,13 +816,31 @@ class Users extends REST_Controller {
 
 					                imagecopyresampled($im, $image, 0, 0, 0, 0, $width , $height,  $owidth , $oheight);
 
+					                $isTextMeme = '';
+					                $margin = 100;
+
+					                foreach(explode(" " , $this->textMeme) as $word)
+					                {
+					                	$box = imagettfbbox($this->fontSize, 0, $this->fontPath, $isTextMeme.' '.$word);
+					                	if($box[2] > $width - $margin*2){
+									        $isTextMeme .= "\n".$word;
+									    } else {
+									        $isTextMeme .= " ".$word;
+									    }
+					                }
+
+					                $isTextMeme = trim($isTextMeme);
+					                $box = imagettfbbox($this->fontSize, 0, $this->fontPath, $isTextMeme);
+					                $heightWatermarkText = $box[1] + $this->fontSize + $margin*2;
+
 					                /* Watermark Text */
 					                $white = imagecolorallocate($im, 255, 255, 255);
 								    $shadow = imagecolorallocate($im, 178, 178, 178);
 
 								    list($x, $y) = textToCenter($im, $this->textMeme, $this->fontPath, $this->fontSize);
 
-								    imagettftext($im, $this->fontSize, 0, $x , $y , $white, $this->fontPath, $this->textMeme);
+								    $this->textMeme = $isTextMeme;
+								    imagettftext($im, $this->fontSize, 0, $margin , $y , $white, $this->fontPath, $this->textMeme);
 
 					                /* Watermark Text */
 
@@ -858,7 +876,7 @@ class Users extends REST_Controller {
 											'jam' => date('H:i:s')
 										);
 
-									$this->db->insert('t_meme' , $data);
+									// $this->db->insert('t_meme' , $data);
 
 									$result = array(
 											'return' => true,
