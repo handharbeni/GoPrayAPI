@@ -794,7 +794,7 @@ class Users extends REST_Controller {
 									list($owidth, $oheight) = getimagesize($gambar);
 									$this->textMeme = $text;
 									$this->watermarkImage = FCPATH.'resources/logo.png';
-									$this->fontSize = 13;
+									$this->fontSize = 18;
 									$this->fontPath = FCPATH.'resources/fonts/Helvetica.ttf';
 
 									$width = 512;
