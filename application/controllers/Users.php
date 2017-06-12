@@ -281,9 +281,9 @@ class Users extends REST_Controller {
 					switch( trimLower($action))
 					{
 						case 'timeline':
-							$query = $this->db->get_where('m_family' , array('key' => $accessToken));
-
-							if ( $query->num_rows() == 0)
+							$queryOrtu = $this->db->get_where('m_family' , array('key' => $accessToken));
+							$queryAnak = $this->db->get_where('m_akun' , array('key' => $accessToken));
+							if ( $queryOrtu->num_rows() == 0 && $queryAnak->num_rows() == 0)
 							{
 								$result = array(
 									'return' => false,
@@ -292,13 +292,65 @@ class Users extends REST_Controller {
 							}
 							else
 							{
-								$dataParent = $query->result()[0];
+								// if ( $queryOrtu->num_rows() > 0 )
+								// {
+								// 	$dataParent = @$queryOrtu->result()[0];
+								// }
+								// elseif( $queryAnak->num_rows() > 0)
+								// {
+								// 	$dataChild = @$queryAnak->result()[0];
+								// }
+
+								// $listIdUser = $dataChild->id ; // $dataParent->child
+								$listIdUser = array();
+
+								if ( $queryOrtu->num_rows() > 0)
+								{
+									$self = $queryOrtu->result();
+									$kerabat = $this->db->get_where('t_closest_family' , array('id_kerabat' => $self[0]->id));
+
+									foreach($kerabat->result() as $row)
+									{
+										$user = $this->db->get_where('m_akun' , array('id' => $row->id_user))
+										->result()[0];
+
+										$data[] = array(
+												'id_user' => $user->id,
+												'kerabat' => 'Anak',
+												'nama' => $user->nama,
+												'email' => $user->email,
+												'foto_profil' => $user->profile_picture
+											);
+									}
+								}
+								elseif ( $queryAnak->num_rows() > 0)
+								{
+									$self = $queryAnak->result();
+									$kerabat = $this->db->get_where('t_closest_family' , array('id_user' => $self[0]->id));
+
+									foreach($kerabat->result() as $row)
+									{
+										$ortu = $this->db->get_where('m_family' , array('id' => $row->id_kerabat))
+										->result()[0];
+
+										$data[] = array(
+												'id_kerabat' => $ortu->id,
+												'kerabat' => $ortu->kerabat,
+												'nama' => $ortu->nama,
+												'email' => $ortu->email,
+												'no_hp' => $ortu->no_hp,
+												'foto_profil' => $ortu->gambar,
+											);
+
+										array_push($listIdUser, $data);
+									}
+								}
 
 								$sql = "SELECT t_timeline.id as id_timeline, t_timeline.*, m_aktivitas.*, t_timeline.tanggal as tgl FROM
 										t_timeline
 										LEFT JOIN m_akun ON m_akun.id = t_timeline.id_user
 										LEFT JOIN m_aktivitas ON m_aktivitas.id = t_timeline.id_aktivitas
-										WHERE t_timeline.id_user IN (".$dataParent->child.")
+										WHERE t_timeline.id_user IN (".$queryAnak->result()[0]->id.")
 										ORDER BY t_timeline.tanggal DESC , t_timeline.jam DESC";
 
 								$hsl = $this->db->query($sql)->result();
@@ -338,8 +390,88 @@ class Users extends REST_Controller {
 
 								$result = array(
 									'return' => true,
+									'child' => $listIdUser,
 									'data' => $temp
 								);
+							}
+						break;
+
+						case 'list':
+							$this->pilihan = $this->get('opsi');
+
+							if ( ! $accessToken || ! $this->pilihan)
+							{
+								$result = array(
+										'return' => false,
+										'error_message' => 'Parameter tidak ditemukan'
+									);
+							}
+							else
+							{
+								switch( trimLower($this->pilihan))
+								{
+									case 'kerabat':
+										$queryOrtu = $this->db->get_where('m_family' , array('key' => $accessToken));
+										$queryAnak = $this->db->get_where('m_akun' , array('key' => $accessToken));
+
+										$data = array();
+
+										if ( $queryOrtu->num_rows() > 0)
+										{
+											$self = $queryOrtu->result();
+											$kerabat = $this->db->get_where('t_closest_family' , array('id_kerabat' => $self[0]->id));
+
+											foreach($kerabat->result() as $row)
+											{
+												$user = $this->db->get_where('m_akun' , array('id' => $row->id_user))
+												->result()[0];
+
+												$data[] = array(
+														'id_user' => $user->id,
+														'kerabat' => 'Anak',
+														'nama' => $user->nama,
+														'email' => $user->email,
+														'foto_profil' => $user->profile_picture
+													);
+											}
+										}
+										elseif ( $queryAnak->num_rows() > 0)
+										{
+											$self = $queryAnak->result();
+											$kerabat = $this->db->get_where('t_closest_family' , array('id_user' => $self[0]->id));
+
+											foreach($kerabat->result() as $row)
+											{
+												$ortu = $this->db->get_where('m_family' , array('id' => $row->id_kerabat))
+												->result()[0];
+
+												$data[] = array(
+														'id_kerabat' => $ortu->id,
+														'kerabat' => $ortu->kerabat,
+														'nama' => $ortu->nama,
+														'email' => $ortu->email,
+														'no_hp' => $ortu->no_hp,
+														'foto_profil' => $ortu->gambar,
+													);
+											}
+										}
+
+										$result = array(
+												'return' => true,
+												'data' => array(
+														'self' => $self,
+														'kerabat' => $data,
+													)
+											);
+									break;
+
+									default:
+										$result = array(
+												'return' => false,
+												'error_message' => 'Metode salah atau tidak ditemukan!'
+											);
+									break;
+								}
 							}
 						break;
 
