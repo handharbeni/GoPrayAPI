@@ -118,6 +118,9 @@
 # GET Timeline
 /users/parent/timeline?access_token={AT}
 
+# GET List Kerabat
+/users/parent/list?opsi=kerabat&access_token={AT}
+
 # POST Daftar
 => kerabat
 => nama
