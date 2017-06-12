@@ -131,6 +131,19 @@
 => password
 /users/parent/login
 
+# POST Setting Profile
+=> access_token
+=> method
+(method == 1)
+=> kerabat (optional)
+=> nama (optional)
+=> no_hp (optional)
+(method == 2)
+=> gambar 
+(method == 3)
+=> password
+/users/parent/profile
+
 # on Building
 
 Code By reksarw@gmail.com

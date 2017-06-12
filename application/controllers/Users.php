@@ -877,7 +877,7 @@ class Users extends REST_Controller {
 											'jam' => date('H:i:s')
 										);
 
-									$this->db->insert('t_meme' , $data);
+									// $this->db->insert('t_meme' , $data);
 
 									$result = array(
 											'return' => true,
@@ -1254,6 +1254,154 @@ class Users extends REST_Controller {
 												'return' => true,
 												'message' => 'Akun berhasil ditambahkan'
 											);
+									}
+								}
+							}
+						break;
+
+						case 'profile':
+							if ( ! $accessToken)
+							{
+								$result = array(
+										'return' => false,
+										'error_message' => 'Access token tidak valid!'
+									);
+							}
+							else
+							{
+								$this->db->where('key' , $accessToken);
+
+								$query = $this->db->get('m_family');
+
+								if ( ! $query->num_rows() > 0)
+								{
+									$result = array(
+											'return' => false,
+											'error_message' => 'Access token salah atau tidak ditemukan!'
+										);
+								}
+								else
+								{
+									$this->metode = $this->post('method');
+
+									if ( ! $this->metode)
+									{
+										$result = array(
+												'return' => false,
+												'error_message' => 'Metode salah atau tidak ditemukan!'
+											);
+									}
+									else
+									{
+										$akun = $query->result()[0];
+
+										switch( (int) $this->metode)
+										{
+											case 1:
+												$postdata = array(
+														'kerabat' => $this->post('kerabat'),
+														'nama' => $this->post('nama'),
+														'no_hp' => $this->post('no_hp')
+													);
+
+												$data = array(
+														'kerabat' => ( ! $postdata['kerabat']) 
+															? $akun->kerabat : $postdata['kerabat'],
+														'nama' => ( ! $postdata['nama'])
+															? $akun->nama : $postdata['nama'],
+														'no_hp' => ( ! $postdata['no_hp'])
+															? $akun->no_hp : $postdata['no_hp']
+													);
+
+												$this->db->set($data);
+												$this->db->where( array('id' => $akun->id));
+												$this->db->update('m_family');
+
+												$result = array(
+														'return' => true,
+														'message' => 'Data berhasil diubah!'
+													);
+											break;
+
+											case 2:
+												if ( ! $_FILES['gambar'])
+												{
+													$result = array(
+															'return' => false,
+															'error_message' => 'Parameter masih ada yang kosong!'
+														);
+												}
+												else
+												{
+													$mime = isset($_FILES['gambar']) ? $_FILES['gambar']['type'] : get_mime_by_extension($gambar);
+
+													$mimeAccepted = array('image/png' , 'image/jpeg');
+
+													if ( ! in_array($mime, $mimeAccepted))
+													{
+														$result = array(
+																'return' => false,
+																'error_message' => 'File gambar hanya boleh berekstensi JPG/PNG'
+															);
+													}
+													else
+													{
+														$x = explode("." , $_FILES['gambar']['name']);
+														$image_result = generate_image($_FILES['gambar']['name']).'.'.end($x);
+
+														isset($image_result) ? 
+														move_uploaded_file($_FILES['gambar']['tmp_name'], FCPATH.'resources/uploads/'.$image_result) : null;
+
+														$dataUpdate = array(
+																'gambar' 
+																=> base_url('resources/uploads/'.$image_result)
+															);
+
+														$this->db->set($dataUpdate);
+														$this->db->where('id' , $akun->id);
+														$this->db->update('m_family');
+
+														$result = array(
+																'return' => true,
+																'message' => 'Foto profil berhasil diubah',
+															);
+													}
+												}
+											break;
+
+											case 3:
+												if ( ! $this->post('password'))
+												{
+													$result = array(
+															'return' => false,
+															'error_message' => 'Parameter masih ada yang kosong!'
+														);
+												}
+												else
+												{
+													$dataUpdate = array(
+																'password' 
+																=> md5($this->post('password'))
+															);
+
+													$this->db->set($dataUpdate);
+													$this->db->where('id' , $akun->id);
+													$this->db->update('m_family');
+
+													$result = array(
+															'return' => true,
+															'message' => 'Data password berhasil dirubah'
+														);
+												}
+											break;
+
+											default:
+												$result = array(
+														'return' => false,
+														'error_message' => 'Metode salah atau tidak ditemukan!'
+													);
+											break;
+										}
 									}
 								}
 							}
