@@ -307,14 +307,60 @@ if ( ! function_exists('textToCenter'))
 	    $xr = abs(max($box[2], $box[4]));
 	    $yr = abs(max($box[5], $box[7]));
 
+	    $widthText = GetTextWidth($size, $font, $text) / 2;
+	    $widthText = $widthText - ($widthText/2);
 	    $totaly = intval(($yi + $yr) / 2);
 	    $totaly = intval($totaly /  2);
 	    $totaly2 = intval($totaly / 2);
 	    $x = intval(($xi - $xr) / 2);
+	    $x = $x<=$widthText?$widthText-$x:$x-$widthText;
 	    // $y = intval(($yi + $yr) / 2);
 	    $y = $totaly + $totaly2;
 
 	    return array($x, $y);
+	}
+}
+if ( ! function_exists('GetTextWidth')) {
+	function GetTextWidth($fontSize, $font, $text){
+	    $line_box = imagettfbbox ($fontSize, 0, $font, $text);
+	    return ceil($line_box[0]+$line_box[2]); 
+	}
+}
+if ( ! function_exists("justify")) {
+	function justify($str_in, $desired_length, $char = '_') {
+	    $return = '';
+	    $str_in = trim( $str_in);
+	    $desired_length = intval( $desired_length);
+	    if( $desired_length <= 0)
+	        return $str_in;
+
+	    if( strlen( $str_in) > $desired_length) {
+	        $str = wordwrap($str_in, $desired_length);
+	        $str = explode("\n", $str);
+	        $str_in = $str[0];
+	    }
+	    $words = explode( ' ', $str_in);
+	    $num_words = count( $words);
+	    if( $num_words == 1) {
+	        $length = ($desired_length - strlen( $words[0])) / 2;
+	        $return .= str_repeat( $char, floor( $length)) . $words[0] . str_repeat( $char, ceil( $length));
+	    } else {
+	        $word_length = strlen( implode( '', $words));
+	        $num_words--; 
+	        $spaces = floor( ($desired_length - $word_length) / $num_words);
+	        $remainder = $desired_length - $word_length - ($num_words * $spaces);
+	        $last = array_pop( $words);
+	        foreach( $words as $word) {
+	            $spaces_to_add = $spaces;
+	            if( $remainder > 0) {
+	                $spaces_to_add++;
+	                $remainder--;
+	            }
+	            $return .= $word . str_repeat( $char, $spaces_to_add);
+	        }
+	        $return .= $last;
+	    }
+	    return $return;
 	}
 }
 
