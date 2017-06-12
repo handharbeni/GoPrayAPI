@@ -960,7 +960,8 @@ class Users extends REST_Controller {
 									        $isTextMeme .= " ".$word;
 									    }
 					                }
-
+									$boundingBoxWidth = $box[4] - $box[0];
+									$boundingBoxHeight = $box[5] - $box[1];
 					                $isTextMeme = trim($isTextMeme);
 					                $box = imagettfbbox($this->fontSize, 0, $this->fontPath, $isTextMeme);
 					                $heightWatermarkText = $box[1] + $this->fontSize + $margin*2;
@@ -972,7 +973,7 @@ class Users extends REST_Controller {
 								    list($x, $y) = textToCenter($im, $this->textMeme, $this->fontPath, $this->fontSize);
 
 								    $this->textMeme = $isTextMeme;
-								    imagettftext($im, $this->fontSize, 0, $margin , $y , $white, $this->fontPath, $this->textMeme);
+								    imagettftext($im, $this->fontSize, 0, $margin , $y , $shadow, $this->fontPath, $this->textMeme);
 
 					                /* Watermark Text */
 
