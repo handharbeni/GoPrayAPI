@@ -28,9 +28,8 @@ class Master extends REST_Controller {
 
 		$accessToken = $this->get('access_token');
 
-		$this->db->where('key' , $accessToken);
-
-		$check = $this->db->get('m_akun');
+		$checkUser = $this->db->get_where('m_akun', array('key' => $accessToken));
+		$checkFamily = $this->db->get_where('m_family', array('key' => $accessToken));
 
 		if ( ! $accessToken)
 		{
@@ -39,7 +38,7 @@ class Master extends REST_Controller {
 					'error_message' => 'Access token tidak valid!'
 				);
 		}
-		elseif ( ! $check->num_rows() > 0)
+		elseif ( ! $checkUser->num_rows() > 0 && ! $checkFamily->num_rows() > 0)
 		{
 			$result = array(
 					'return' => false,
@@ -192,7 +191,7 @@ class Master extends REST_Controller {
 
 				// Stiker section
 				case 'stiker':
-					$dataUser = $check->result();
+					$dataUser = $checkUser->result();
 
 					$masterStiker = $this->db->order_by('tanggal DESC','jam DESC')->get('m_stiker');
 
@@ -200,9 +199,9 @@ class Master extends REST_Controller {
 
 					foreach($masterStiker->result() as $data)
 					{
-						$checkPayment = $this->db->select( array('kd_stiker','status_payment'))->from('t_avail_stiker')->where( array('kd_user' => $dataUser[0]->id,'kd_stiker' => $data->id))->get();
+						$checkPayment = @$this->db->select( array('kd_stiker','status_payment'))->from('t_avail_stiker')->where( array('kd_user' => $dataUser->id,'kd_stiker' => $data->id))->get();
 
-						$childStiker = $this->db->select( array('stiker','nomer','tanggal','jam'))->from('t_stiker')->where ( array('kd_stiker' => $data->id))->get();
+						$childStiker = @$this->db->select( array('stiker','nomer','tanggal','jam'))->from('t_stiker')->where ( array('kd_stiker' => $data->id))->get();
 
 						$results[] = array(
 								'nama_stiker' => $data->nama,
@@ -260,7 +259,7 @@ class Master extends REST_Controller {
 					$query = $this->db
 					->select( array('path_meme','tanggal','jam'))
 					->from('t_meme')
-					->where( array('id_user' => $check->result()[0]->id))
+					->where( array('id_user' => $checkUser->result()[0]->id))
 					->order_by('tanggal DESC','jam DESC')
 					->get();
 
@@ -276,6 +275,93 @@ class Master extends REST_Controller {
 					$result = array(
 							'return' => true,
 							'data' => $data
+						);
+				break;
+
+				case 'pesan':
+					$user = @$checkUser->result()[0];
+					$ortu = @$checkFamily->result()[0];
+
+					$listId = array();
+
+					if ( $checkFamily->num_rows() > 0)
+					{
+						$self = $ortu;
+						$kerabat = $this->db->get_where('t_closest_family' , array('id_kerabat' => $self->id));
+
+						array_push($listId, $self->id);
+
+						foreach($kerabat->result() as $row)
+						{
+							$user = $this->db->get_where('m_akun' , array('id' => $row->id_user))
+							->result()[0];
+
+							array_push($listId, $user->id);
+						}
+
+						$viewCheckStatus = false;
+						$query = $this->db
+						->select('t_message.*')
+						->join('t_message' , 'm_family.id = t_message.id_kerabat')
+						->where( array('m_family.key' => $ortu->key))
+						->get('m_family')
+						->result();
+					}
+					elseif ( $checkUser->num_rows() > 0)
+					{
+						$self = $user;
+						$kerabat = $this->db->get_where('t_closest_family' , array('id_user' => $self->id));
+
+						array_push($listId, $self->id);
+
+						foreach($kerabat->result() as $row)
+						{
+							$ortu = $this->db->get_where('m_family' , array('id' => $row->id_kerabat))
+							->result()[0];
+							array_push($listId, $ortu->id);
+						}
+						
+						$viewCheckStatus = true;
+						$query = $this->db->get('t_message')->result();
+					}
+
+					$final = array();
+
+					foreach($query as $data)
+					{
+						$this->id = $data->id_kerabat;
+
+						if ( $viewCheckStatus)
+						{
+							$checkStatus = ( array_key_exists($this->id, $listId)) ? 1 : 0;
+						}
+
+						// $kerabat = $this->db->get_where('m_family' , 
+						// 	array('id' => $this->id))
+						// 	->result();
+
+						$final[] = array(
+								// 'kerabat' => array(
+										// 'id_kerabat' => $kerabat['id'],
+										// 'jenis_kerabat' => $kerabat->kerabat,
+										// 'nama_kerabat' => $kerabat->nama,
+										// 'email' => $kerabat->email,
+										// 'no_hp' => $kerabat->no_hp,
+										// 'foto' => $kerabat->gambar
+									// ),
+								// 'kerabat' => $kerabat,
+								'id_kerabat' => $this->id,
+								'id_user' => $data->id_user,
+								'pesan' => $data->message,
+								'gambar' => $data->gambar,
+								// 'v' => @$checkStatus
+							);
+					}
+
+					$result = array(
+							'return' => true,
+							'listId' => $listId,
+							'data' => $final,
 						);
 				break;
 
@@ -407,6 +493,74 @@ class Master extends REST_Controller {
 							'return' => true,
 							'message' => 'Berhasil ditambahkan!'
 						);
+				}
+			break;
+
+			case 'pesan':
+				$accessToken = $this->post('access_token');
+
+				$checkUser = $this->db->get_where('m_family', array('key' => $accessToken));
+				if ( ! $accessToken)
+				{
+					$result = array(
+							'return' => false,
+							'error_message' => 'Access token tidak valid!'
+						);
+				}
+				elseif ( ! $checkUser->num_rows() > 0)
+				{
+					$result = array(
+							'return' => false,
+							'error_message' => 'Access token salah atau tidak ditemukan!'
+						);
+				}else
+				{
+					$postdata = array(
+							'pesan' => $this->post('pesan'),
+							'gambar' => $_FILES['gambar']
+						);
+
+					if ( ! $postdata['pesan'] && ! $postdata['gambar'])
+					{
+						$result = array(
+								'return' => false,
+								'error_message' => 'Masih ada parameter kosong!!'
+							);
+					}
+					else
+					{
+						$this->pesan = $postdata['pesan'];
+
+						if ( $_FILES['gambar'])
+						{
+							$upload_dir = FCPATH.'resources/uploads/';
+
+							$x = explode("." , $_FILES['gambar']['name']);
+
+							$fileEncrypt = generate_image($_FILES['gambar']['name']);
+
+							$fileName = $upload_dir.$fileEncrypt.'.'.end($x);
+							$_FILES['gambar'] ? move_uploaded_file($_FILES['gambar']['tmp_name'], $fileName) : null;
+
+							$path = $fileEncrypt.'.'.end($x);
+						}
+
+						$data = array(
+								'id_kerabat' => $checkUser->result()[0]->id,
+								'id_user' => 0,
+								'message' => ( ! $this->pesan) ? null : $this->pesan,
+								'gambar' => ( $_FILES['gambar']) ? base_url("resources/uploads/".$path) : null,
+								'tanggal' => date('Y-m-d'),
+								'jam' => date('H:i:s')
+							);
+
+						$this->db->insert('t_message' , $data);
+
+						$result = array(
+								'return' => true,
+								'message' => 'Berhasil ditambahkan!'
+							);
+					}
 				}
 			break;
 
