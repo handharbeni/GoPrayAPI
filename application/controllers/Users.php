@@ -281,119 +281,107 @@ class Users extends REST_Controller {
 					switch( trimLower($action))
 					{
 						case 'timeline':
-							$queryOrtu = $this->db->get_where('m_family' , array('key' => $accessToken));
-							$queryAnak = $this->db->get_where('m_akun' , array('key' => $accessToken));
-							if ( $queryOrtu->num_rows() == 0 && $queryAnak->num_rows() == 0)
+						$queryOrtu = $this->db->get_where('m_family' , array('key' => $accessToken));
+						$queryAnak = $this->db->get_where('m_akun' , array('key' => $accessToken));
+						if ( $queryOrtu->num_rows() == 0 && $queryAnak->num_rows() == 0)
+						{
+							$result = array(
+								'return' => false,
+								'error_message' => 'Access token salah atau tidak ditemukan!'
+							);
+						}
+						else
+						{
+							$listIdUser = array();
+
+							if ( $queryOrtu->num_rows() > 0)
 							{
-								$result = array(
-									'return' => false,
-									'error_message' => 'Access token salah atau tidak ditemukan!'
-								);
-							}
-							else
-							{
-								// if ( $queryOrtu->num_rows() > 0 )
-								// {
-								// 	$dataParent = @$queryOrtu->result()[0];
-								// }
-								// elseif( $queryAnak->num_rows() > 0)
-								// {
-								// 	$dataChild = @$queryAnak->result()[0];
-								// }
-
-								// $listIdUser = $dataChild->id ; // $dataParent->child
-								$listIdUser = array();
-
-								if ( $queryOrtu->num_rows() > 0)
+								$self = $queryOrtu->result();
+								$kerabat = $this->db->get_where('t_closest_family' , array('id_kerabat' => $self[0]->id));
+								foreach($kerabat->result() as $row)
 								{
-									$self = $queryOrtu->result();
-									$kerabat = $this->db->get_where('t_closest_family' , array('id_kerabat' => $self[0]->id));
-
-									foreach($kerabat->result() as $row)
-									{
-										$user = $this->db->get_where('m_akun' , array('id' => $row->id_user))
-										->result()[0];
-
-										$data[] = array(
-												'id_user' => $user->id,
-												'kerabat' => 'Anak',
-												'nama' => $user->nama,
-												'email' => $user->email,
-												'foto_profil' => $user->profile_picture
-											);
-									}
-								}
-								elseif ( $queryAnak->num_rows() > 0)
-								{
-									$self = $queryAnak->result();
-									$kerabat = $this->db->get_where('t_closest_family' , array('id_user' => $self[0]->id));
-
-									foreach($kerabat->result() as $row)
-									{
-										$ortu = $this->db->get_where('m_family' , array('id' => $row->id_kerabat))
-										->result()[0];
-
-										$data[] = array(
-												'id_kerabat' => $ortu->id,
-												'kerabat' => $ortu->kerabat,
-												'nama' => $ortu->nama,
-												'email' => $ortu->email,
-												'no_hp' => $ortu->no_hp,
-												'foto_profil' => $ortu->gambar,
-											);
-
-										array_push($listIdUser, $data);
-									}
+									$user = $this->db->get_where('m_akun' , array('id' => $row->id_user))
+									->result()[0];
+									$data[] = array(
+											'id_user' => $user->id,
+											'kerabat' => 'Anak',
+											'nama' => $user->nama,
+											'email' => $user->email,
+											'foto_profil' => $user->profile_picture
+										);
 								}
 
 								$sql = "SELECT t_timeline.id as id_timeline, t_timeline.*, m_aktivitas.*, t_timeline.tanggal as tgl FROM
-										t_timeline
-										LEFT JOIN m_akun ON m_akun.id = t_timeline.id_user
-										LEFT JOIN m_aktivitas ON m_aktivitas.id = t_timeline.id_aktivitas
-										WHERE t_timeline.id_user IN (".$queryAnak->result()[0]->id.")
-										ORDER BY t_timeline.tanggal DESC , t_timeline.jam DESC";
-
-								$hsl = $this->db->query($sql)->result();
-								
-								$temp = array();
-
-								foreach($hsl as $row)
-								{
-									$query = $this->db->get_where('m_akun',
-										array('id' => $row->id_user))->result();
-
-									$data = array(
-											'id_timeline' => $row->id_timeline,
-											'id' => $row->id,
-											'id_user' => $row->id_user,
-											'nama_user' => $query[0]->nama,
-											'foto_user' => $query[0]->profile_picture,
-											'id_aktivitas' => $row->id_aktivitas,
-											'id_ibadah' => $row->id_ibadah,
-											'tempat' => $row->tempat,
-											'bersama' => $row->bersama,
-											'nominal' => $row->nominal,
-											'image' => $row->image,
-											'point' => $row->point,
-											'tanggal' => $row->tanggal,
-											'jam' => $row->jam,
-											'nama' => $row->nama,
-											'prefix_table' => $row->prefix_table,
-											'nama_ibadah' => $row->nama_ibadah,
-											'tgl' => $row->tgl,
-										);
-
-									array_push($temp, $data);
-								}
-								
-								array_merge($temp);
-
-								$result = array(
-									'return' => true,
-									'child' => $listIdUser,
-									'data' => $temp
-								);
+									t_timeline
+									LEFT JOIN m_akun ON m_akun.id = t_timeline.id_user
+									LEFT JOIN m_aktivitas ON m_aktivitas.id = t_timeline.id_aktivitas
+									WHERE t_timeline.id_user IN (".$queryOrtu->result()[0]->child.")
+									ORDER BY t_timeline.tanggal DESC , t_timeline.jam DESC";
 							}
+							elseif ( $queryAnak->num_rows() > 0)
+							{
+								$self = $queryAnak->result();
+								$kerabat = $this->db->get_where('t_closest_family' , array('id_user' => $self[0]->id));
+								foreach($kerabat->result() as $row)
+								{
+									$ortu = $this->db->get_where('m_family' , array('id' => $row->id_kerabat))
+									->result()[0];
+									$data[] = array(
+											'id_kerabat' => $ortu->id,
+											'kerabat' => $ortu->kerabat,
+											'nama' => $ortu->nama,
+											'email' => $ortu->email,
+											'no_hp' => $ortu->no_hp,
+											'foto_profil' => $ortu->gambar,
+										);
+									array_push($listIdUser, $data);
+								}
+
+								$sql = "SELECT t_timeline.id as id_timeline, t_timeline.*, m_aktivitas.*, t_timeline.tanggal as tgl FROM
+									t_timeline
+									LEFT JOIN m_akun ON m_akun.id = t_timeline.id_user
+									LEFT JOIN m_aktivitas ON m_aktivitas.id = t_timeline.id_aktivitas
+									WHERE t_timeline.id_user IN (".$queryAnak->result()[0]->id.")
+									ORDER BY t_timeline.tanggal DESC , t_timeline.jam DESC";
+							}
+							
+							$hsl = $this->db->query($sql)->result();
+							
+							$temp = array();
+							foreach($hsl as $row)
+							{
+								$query = $this->db->get_where('m_akun',
+									array('id' => $row->id_user))->result();
+								$data = array(
+										'id_timeline' => $row->id_timeline,
+										'id' => $row->id,
+										'id_user' => $row->id_user,
+										'nama_user' => $query[0]->nama,
+										'foto_user' => $query[0]->profile_picture,
+										'id_aktivitas' => $row->id_aktivitas,
+										'id_ibadah' => $row->id_ibadah,
+										'tempat' => $row->tempat,
+										'bersama' => $row->bersama,
+										'nominal' => $row->nominal,
+										'image' => $row->image,
+										'point' => $row->point,
+										'tanggal' => $row->tanggal,
+										'jam' => $row->jam,
+										'nama' => $row->nama,
+										'prefix_table' => $row->prefix_table,
+										'nama_ibadah' => $row->nama_ibadah,
+										'tgl' => $row->tgl,
+									);
+								array_push($temp, $data);
+							}
+							
+							array_merge($temp);
+
+							$result = array(
+								'return' => true,
+								'data' => $temp
+							);
+						}
 						break;
 
 						case 'list':
@@ -1525,6 +1513,47 @@ class Users extends REST_Controller {
 															'message' => 'Data password berhasil dirubah'
 														);
 												}
+											break;
+
+											case 4:
+												$postdata = array(
+														'kerabat' => $this->post('kerabat'),
+														'nama' => $this->post('nama'),
+														'no_hp' => $this->post('no_hp'),
+														'password' => $this->post('password')
+													);
+
+												if ( $_FILES['gambar'])
+												{
+													$x = explode("." , $_FILES['gambar']['name']);
+													$image_result = generate_image($_FILES['gambar']['name']).'.'.end($x);
+
+													isset($image_result) ? 
+													move_uploaded_file($_FILES['gambar']['tmp_name'], FCPATH.'resources/uploads/'.$image_result) : null;
+												}
+
+												$dataUpdate = array(
+														'kerabat' => ( ! $postdata['kerabat']) 
+															? $akun->kerabat : $postdata['kerabat'],
+														'nama' => ( ! $postdata['nama'])
+															? $akun->nama : $postdata['nama'],
+														'no_hp' => ( ! $postdata['no_hp'])
+															? $akun->no_hp : $postdata['no_hp'],
+														'password' => ( ! $postdata['password'])
+															? $akun->password : md5($postdata['password']),
+														'gambar' 
+														=> ( $_FILES['gambar']) ? base_url('resources/uploads/'.$image_result)
+														: $akun->gambar
+													);
+
+												$this->db->set($dataUpdate);
+												$this->db->where('id' , $akun->id);
+												$this->db->update('m_family');
+
+												$result = array(
+														'return' => true,
+														'message' => 'Berhasil diubah!'
+													);
 											break;
 
 											default:
