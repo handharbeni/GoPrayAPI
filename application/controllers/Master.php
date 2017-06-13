@@ -279,88 +279,59 @@ class Master extends REST_Controller {
 				break;
 
 				case 'pesan':
-					$user = @$checkUser->result()[0];
-					$ortu = @$checkFamily->result()[0];
-
-					$listId = array();
-
-					if ( $checkFamily->num_rows() > 0)
-					{
-						$self = $ortu;
-						$kerabat = $this->db->get_where('t_closest_family' , array('id_kerabat' => $self->id));
-
-						array_push($listId, $self->id);
-
-						foreach($kerabat->result() as $row)
-						{
-							$user = $this->db->get_where('m_akun' , array('id' => $row->id_user))
-							->result()[0];
-
-							array_push($listId, $user->id);
-						}
-
-						$viewCheckStatus = false;
-						$query = $this->db
-						->select('t_message.*')
-						->join('t_message' , 'm_family.id = t_message.id_kerabat')
-						->where( array('m_family.key' => $ortu->key))
-						->get('m_family')
-						->result();
-					}
-					elseif ( $checkUser->num_rows() > 0)
-					{
-						$self = $user;
-						$kerabat = $this->db->get_where('t_closest_family' , array('id_user' => $self->id));
-
-						array_push($listId, $self->id);
-
-						foreach($kerabat->result() as $row)
-						{
-							$ortu = $this->db->get_where('m_family' , array('id' => $row->id_kerabat))
-							->result()[0];
-							array_push($listId, $ortu->id);
-						}
-						
-						$viewCheckStatus = true;
-						$query = $this->db->get('t_message')->result();
-					}
+					/*
+					Family : fee62171b1-YQ8P7dE-3894427941
+					User : be874ad6d5-Xg1vNyj-3541755941
+					*/
+					$requestFrom = ($checkUser->num_rows() > 0) ? $checkUser->result()[0] : $checkFamily->result()[0]; 
 
 					$final = array();
 
-					foreach($query as $data)
+					if ( $checkUser->num_rows() > 0)
 					{
-						$this->id = $data->id_kerabat;
+						$self = $requestFrom;
+						$sql = "select m_akun.id AS id_user , m_akun.nama , m_akun.email , m_akun.key , m_akun.profile_picture ,
+								t_message.id AS id_pesan , t_message.id_kerabat , t_message.message , t_message.gambar , t_message.tanggal AS tgl_pesan , t_message.jam AS jam_pesan
+						 		from m_akun inner join t_closest_family on t_closest_family.id_user = m_akun.id
+								inner join t_message on t_message.id_kerabat = t_closest_family.id_kerabat
+								where m_akun.key = '".$self->key."' ORDER BY t_message.tanggal , t_message.jam";
 
-						if ( $viewCheckStatus)
+						$query = $this->db->query($sql)->result();
+
+						foreach($query as $row)
 						{
-							$checkStatus = ( array_key_exists($this->id, $listId)) ? 1 : 0;
+							$kerabat = $this->db->get_where('m_family' , array(
+									'id' => $row->id_kerabat
+								))->result()[0];
+
+							$final[] = array(
+									'id_pesan' => $row->id_pesan,
+									'id_user' => $row->id_user,
+									'kerabat' => array(
+											'id_kerabat' => $row->id_kerabat,
+											'hubungan' => $kerabat->kerabat,
+											'nama' => $kerabat->nama,
+											'email' => $kerabat->email,
+											'no_hp' => $kerabat->no_hp,
+											'foto' => $kerabat->gambar,
+											'terdaftar' => $kerabat->tanggal.' '.$kerabat->jam
+										),
+									'pesan' => $row->message,
+									'gambar' => $row->gambar,
+									'type' => ( $row->gambar == "nothing") ? 1 : 2,
+									'tanggal' => $row->tgl_pesan,
+									'jam' => $row->jam_pesan
+								);
 						}
-
-						// $kerabat = $this->db->get_where('m_family' , 
-						// 	array('id' => $this->id))
-						// 	->result();
-
-						$final[] = array(
-								// 'kerabat' => array(
-										// 'id_kerabat' => $kerabat['id'],
-										// 'jenis_kerabat' => $kerabat->kerabat,
-										// 'nama_kerabat' => $kerabat->nama,
-										// 'email' => $kerabat->email,
-										// 'no_hp' => $kerabat->no_hp,
-										// 'foto' => $kerabat->gambar
-									// ),
-								// 'kerabat' => $kerabat,
-								'id_kerabat' => $this->id,
-								'id_user' => $data->id_user,
-								'pesan' => $data->message,
-								'gambar' => $data->gambar,
-								// 'v' => @$checkStatus
-							);
+					}
+					
+					if ( $checkFamily->num_rows() > 0)
+					{	
+						// do
 					}
 
 					$result = array(
 							'return' => true,
-							'listId' => $listId,
 							'data' => $final,
 						);
 				break;
@@ -520,7 +491,7 @@ class Master extends REST_Controller {
 							'gambar' => $_FILES['gambar']
 						);
 
-					if ( ! $postdata['pesan'] && ! $postdata['gambar'])
+					if ( ! $postdata['pesan'])
 					{
 						$result = array(
 								'return' => false,
@@ -549,7 +520,7 @@ class Master extends REST_Controller {
 								'id_kerabat' => $checkUser->result()[0]->id,
 								'id_user' => 0,
 								'message' => ( ! $this->pesan) ? null : $this->pesan,
-								'gambar' => ( $_FILES['gambar']) ? base_url("resources/uploads/".$path) : null,
+								'gambar' => ( $_FILES['gambar']) ? base_url("resources/uploads/".$path) : 'nothing',
 								'tanggal' => date('Y-m-d'),
 								'jam' => date('H:i:s')
 							);
