@@ -7,9 +7,6 @@
 # GET Timeline
 /users/self/timeline?access_token={AT}
 
-# GET Pesan
-/users/self/pesan?access_token={AT}
-
 # GET Kerabat
 /users/self/kerabat?access_token={AT}
 
@@ -90,16 +87,17 @@
 # GET Paket Stiker
 /master/paketstiker?access_token={AT}
 
-# GET Message
+# GET Pesan
 /master/pesan?access_token{AT}
 
 # POST JadwalSholat (Sinkron)
 => method (monthly / yearly)
 /master/jadwalsholat
 
-# POST Message
+# POST Pesan
 => access_token
-=> pesan / gambar
+=> pesan 
+=> gambar (optional)
 /master/pesan
 
 # POST Paket Stiker
