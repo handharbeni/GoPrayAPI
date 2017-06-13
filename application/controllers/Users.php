@@ -141,7 +141,7 @@ class Users extends REST_Controller {
 							}
 							else
 							{
-								$sqlNew = "SELECT t_timeline.id as id_timeline, t_timeline.*, m_aktivitas.*, t_timeline.tanggal as tgl FROM
+								$sqlNew = "SELECT t_timeline.id as id_timeline, t_timeline.*, m_aktivitas.* FROM
 											t_timeline
 											LEFT JOIN m_akun ON m_akun.id = t_timeline.id_user
 											LEFT JOIN m_aktivitas ON m_aktivitas.id = t_timeline.id_aktivitas
@@ -337,7 +337,7 @@ class Users extends REST_Controller {
 									array_push($listIdUser, $data);
 								}
 
-								$sql = "SELECT t_timeline.id as id_timeline, t_timeline.*, m_aktivitas.*, t_timeline.tanggal as tgl FROM
+								$sql = "SELECT t_timeline.id as id_timeline, t_timeline.*, m_aktivitas.* FROM
 									t_timeline
 									LEFT JOIN m_akun ON m_akun.id = t_timeline.id_user
 									LEFT JOIN m_aktivitas ON m_aktivitas.id = t_timeline.id_aktivitas
@@ -358,6 +358,7 @@ class Users extends REST_Controller {
 										'id_user' => $row->id_user,
 										'nama_user' => $query[0]->nama,
 										'foto_user' => $query[0]->profile_picture,
+										'tanggal_daftar' => $query[0]->tanggal,
 										'id_aktivitas' => $row->id_aktivitas,
 										'id_ibadah' => $row->id_ibadah,
 										'tempat' => $row->tempat,
