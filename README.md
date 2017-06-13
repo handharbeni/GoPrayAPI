@@ -27,7 +27,7 @@
 # POST Kerabat
 => access_token
 => email
-/users/self/kerabat
+/users/self/Kerabat
 
 # POST Timeline
 => access_token
@@ -90,9 +90,17 @@
 # GET Paket Stiker
 /master/paketstiker?access_token={AT}
 
+# GET Message
+/master/pesan?access_token{AT}
+
 # POST JadwalSholat (Sinkron)
 => method (monthly / yearly)
 /master/jadwalsholat
+
+# POST Message
+=> access_token
+=> pesan / gambar
+/master/pesan
 
 # POST Paket Stiker
 => nama_paket
@@ -114,9 +122,6 @@
 [Orang Tua]
 # GET Parent Detail 
 /users/parent/?access_token={AT}
-
-# GET Timeline
-/users/parent/timeline?access_token={AT}
 
 # GET List Kerabat
 /users/parent/list?opsi=kerabat&access_token={AT}
@@ -145,6 +150,12 @@
 => gambar 
 (method == 3)
 => password
+(method == 4)
+=> kerabat (optional)
+=> nama (optional)
+=> no_hp (optional)
+=> gambar (optional)
+=> password (optional)
 /users/parent/profile
 
 # on Building
