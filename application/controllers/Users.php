@@ -446,10 +446,11 @@ class Users extends REST_Controller {
 
 										$result = array(
 												'return' => true,
-												'data' => array(
-														'self' => $self,
-														'kerabat' => $data,
-													)
+												'data' => $data
+												// 'data' => array(
+												// 		'self' => $self,
+												// 		'kerabat' => $data,
+												// 	)
 											);
 									break;
 
