@@ -175,7 +175,7 @@ class Users extends REST_Controller {
 											'bersama' => $data->bersama,
 											'nominal' => $data->nominal,
 											'point' => $data->point,
-											'tanggal' => $data->tgl,
+											'tanggal' => $data->tanggal,
 											'jam' => $data->jam
 										);									
 								}
@@ -202,7 +202,20 @@ class Users extends REST_Controller {
 							}
 							else
 							{
-								$sql = "SELECT t_closest_family.nama AS nama_kerabat , t_message.message AS pesan , t_message.tanggal , t_message.jam FROM  t_closest_family , t_message , m_akun WHERE m_akun.key = '".$accessToken."' AND t_message.id_user = '".$check->result()[0]->id."' AND t_closest_family.id_user = '".$check->result()[0]->id."' AND t_closest_family.id = t_message.id_kerabat AND t_message.id_user = t_closest_family.id_user";
+								// $sql = "SELECT m_family.nama AS nama_kerabat , t_message.message AS pesan , t_message.tanggal , t_message.jam FROM  t_closest_family , t_message , m_akun WHERE m_akun.key = '".$accessToken."' AND t_message.id_user = '".$check->result()[0]->id."' AND t_closest_family.id_user = '".$check->result()[0]->id."' AND t_closest_family.id = t_message.id_kerabat AND t_message.id_user = t_closest_family.id_user";
+								$sql = "SELECT 
+											t_message.id AS id ,
+											m_family.gambar as propict ,
+											m_family.nama AS nama_kerabat , 
+											t_message.message AS pesan , 
+											t_message.gambar AS gambar ,
+											t_message.tanggal , 
+											t_message.jam
+											FROM m_akun
+											INNER JOIN t_closest_family ON t_closest_family.id_user = m_akun.id
+											INNER JOIN t_message ON t_message.id_kerabat = t_closest_family.id_kerabat
+											LEFT JOIN m_family ON m_family.id = t_closest_family.id_kerabat
+											WHERE m_akun.`key` = '".$accessToken."'";
 
 								$query = $this->db->query($sql);
 
@@ -215,9 +228,21 @@ class Users extends REST_Controller {
 								}
 								else
 								{
+									$resultData = array();
+									foreach ($query->result_array() as $rowResult) {
+										$data = array();
+										$data['id'] = $rowResult['id'];
+										$data['type'] = $rowResult['gambar']=="nothing"?"1":"2";
+										$data['propict'] = $rowResult['propict'];
+										$data['pesan'] = $rowResult['pesan'];
+										$data['gambar'] = $rowResult['gambar'];
+										$data['tanggal'] = $rowResult['tanggal'];
+										$data['jam'] = $rowResult['jam'];
+										array_push($resultData, $data);
+									}
 									$result = array(
 											'return' => true,
-											'data' => $query->result()
+											'data' => $resultData
 										);
 								}
 							}
@@ -999,7 +1024,7 @@ class Users extends REST_Controller {
 											'jam' => date('H:i:s')
 										);
 
-									// $this->db->insert('t_meme' , $data);
+									$this->db->insert('t_meme' , $data);
 
 									$result = array(
 											'return' => true,

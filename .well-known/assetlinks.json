@@ -1,0 +1,6 @@
+  [{
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target" : { "namespace": "android_app",
+      "package_name": "salam.gopray.id",
+                 "sha256_cert_fingerprints": ["9c48758c69f69f16cdea960d8f558bb1431d8b22"] }
+  }]
