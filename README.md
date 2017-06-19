@@ -88,7 +88,7 @@
 /master/paketstiker?access_token={AT}
 
 # GET Pesan
-/master/pesan?access_token{AT}
+/master/pesan?access_token={AT}
 
 # POST JadwalSholat (Sinkron)
 => method (monthly / yearly)
