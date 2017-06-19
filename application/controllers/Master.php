@@ -281,10 +281,6 @@ class Master extends REST_Controller {
 				break;
 
 				case 'pesan':
-					/*
-					Family : fee62171b1-YQ8P7dE-3894427941
-					User : be874ad6d5-Xg1vNyj-3541755941
-					*/
 					$requestFrom = ($checkUser->num_rows() > 0) ? $checkUser->result()[0] : $checkFamily->result()[0]; 
 
 					$final = array();
@@ -387,6 +383,51 @@ class Master extends REST_Controller {
 							'return' => true,
 							'data' => $final,
 						);
+				break;
+
+				case 'periode':
+					$me = $checkFamily->result()[0];
+
+					if ( ! $this->get('parameter'))
+					{
+						$result = array(
+								'return' => false,
+								'error_message' => 'Masih ada parameter kosong!'
+							);
+					}
+					else
+					{
+						if ( $checkFamily->num_rows() > 0)
+						{
+							$x = str_replace( array('[',']') , '' , $this->get('parameter'));
+							$x = explode(":" , $x);
+
+							$this->user_id = $x[0];
+							$this->bulan = $x[1];
+							$this->tahun = $x[2];
+
+							$start = $this->tahun.'-'.$this->bulan.'-1';
+							$end = $this->tahun.'-'.$this->bulan.'-31';
+
+							$sql = "SELECT SUM(point) AS point FROM t_timeline";
+							$sql.= " WHERE id_user = ".$this->user_id."";
+							$sql.= " AND tanggal BETWEEN '".$start."' AND '".$end."'";
+
+							$query = $this->db->query($sql)->result()[0];
+
+							$result = array(
+									'return' => true,
+									'point' => $query->point,
+								);
+						}
+						else
+						{
+							$result = array(
+									'return' => false,
+									'error_message' => 'Access token orang tua dibutuhkan!'
+								);
+						}
+					}
 				break;
 
 				default:
