@@ -396,7 +396,7 @@ class Users extends REST_Controller {
 										'nama' => $row->nama,
 										'prefix_table' => $row->prefix_table,
 										'nama_ibadah' => $row->nama_ibadah,
-										'tgl' => $row->tgl,
+										'tgl' => $row->tanggal,
 									);
 								array_push($temp, $data);
 							}
@@ -452,20 +452,31 @@ class Users extends REST_Controller {
 										elseif ( $queryAnak->num_rows() > 0)
 										{
 											$self = $queryAnak->result();
-											$kerabat = $this->db->get_where('t_closest_family' , array('id_user' => $self[0]->id));
-
-											foreach($kerabat->result() as $row)
+											// $kerabat = $this->db->get_where('t_closest_family' , array('id_user' => $self[0]->id));
+											$kerabat = $this->db->query("select 
+																			t_closest_family.id_kerabat as id_kerabat,
+																			m_family.kerabat as kerabat,
+																			m_family.nama as nama,
+																			m_family.email as email,
+																			m_family.no_hp as no_hp,
+																			m_family.gambar as gambar
+																		from t_closest_family
+																		inner join m_family on m_family.id = t_closest_family.id_kerabat
+																		inner join m_akun on t_closest_family.id_user = m_akun.id
+																		where m_akun.`key` = '".$accessToken."'");
+											// print_r($kerabat);
+											foreach($kerabat->result_array() as $row)
 											{
-												$ortu = $this->db->get_where('m_family' , array('id' => $row->id_kerabat))
-												->result()[0];
+												// $ortu = $this->db->get_where('m_family' , array('id' => $row->id_kerabat))
+												// ->result()[0];
 
 												$data[] = array(
-														'id_kerabat' => $ortu->id,
-														'kerabat' => $ortu->kerabat,
-														'nama' => $ortu->nama,
-														'email' => $ortu->email,
-														'no_hp' => $ortu->no_hp,
-														'foto_profil' => $ortu->gambar,
+														'id_kerabat' => $row['id_kerabat'],
+														'kerabat' => $row['kerabat'],
+														'nama' => $row['nama'],
+														'email' => $row['email'],
+														'no_hp' => $row['no_hp'],
+														'foto_profil' => $row['gambar'],
 													);
 											}
 										}
