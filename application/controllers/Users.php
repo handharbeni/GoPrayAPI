@@ -544,7 +544,7 @@ class Users extends REST_Controller {
 										'nama' => $row->nama,
 										'email' => $row->email,
 										'no_hp' => $row->no_hp,
-										'profile_picture' => ( $row->gambar == null) ? 'null' : $row->profile_picture,
+										'profile_picture' => ( $row->gambar == null) ? 'null' : $row->gambar,
 										'tanggal' => $row->tanggal,
 										'anak' => $anak->result(),
 									);
